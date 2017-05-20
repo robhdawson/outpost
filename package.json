@@ -10,6 +10,10 @@
     "test": "jest --env=jsdom"
   },
   "main": "server.js",
+  "engines": {
+    "node": "^6.10.3",
+    "npm": "4.6.1"
+  },
   "dependencies": {
     "express": "^4.15.3",
     "react": "^15.5.4",
