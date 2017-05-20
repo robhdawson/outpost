@@ -2,7 +2,16 @@
   "name": "outpost",
   "version": "0.1.0",
   "private": true,
+  "scripts": {
+    "start": "node scripts/build.js && node server.js",
+    "go": "node server.js",
+    "dev": "node scripts/dev.js",
+    "build": "node scripts/build.js",
+    "test": "jest --env=jsdom"
+  },
+  "main": "server.js",
   "dependencies": {
+    "express": "^4.15.3",
     "react": "^15.5.4",
     "react-dom": "^15.5.4"
   },
@@ -49,12 +58,6 @@
     "webpack-manifest-plugin": "1.1.0",
     "webpack-merge": "^4.1.0",
     "whatwg-fetch": "2.0.3"
-  },
-  "scripts": {
-    "start": "",
-    "dev": "node scripts/dev.js",
-    "build": "node scripts/build.js",
-    "test": "jest --env=jsdom"
   },
   "jest": {
     "testMatch": [
