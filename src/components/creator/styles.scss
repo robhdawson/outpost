@@ -8,6 +8,12 @@
     border: 2px solid $black;
 
     width: 100%;
+
+    overflow: hidden;
+
+    img {
+      width: 100%;
+    }
   }
 
   .toolbar {

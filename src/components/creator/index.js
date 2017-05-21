@@ -5,6 +5,8 @@ import { headerVisibilityChange } from 'store/actions';
 
 import ChunkyButton from 'components/chunky-button';
 
+import Map from 'lib/map';
+
 import './styles.scss';
 
 class Creator extends Component {
@@ -13,6 +15,7 @@ class Creator extends Component {
 
     this.state = {
       displayHeight: 0,
+      image: null,
     };
 
     this.updateDisplaySize = this.updateDisplaySize.bind(this);
@@ -20,7 +23,8 @@ class Creator extends Component {
   }
 
   componentDidMount() {
-    this.props.hideHeader();
+    // this.props.hideHeader();
+
     this.updateDisplaySize();
     window.addEventListener('resize', this.updateDisplaySize);
   }
@@ -31,8 +35,6 @@ class Creator extends Component {
   }
 
   updateDisplaySize() {
-    console.log('hi');
-
     if (!this.display) {
       return;
     }
@@ -43,10 +45,23 @@ class Creator extends Component {
   }
 
   generate() {
-    window.alert('doesn\'t do anything yet :(');
+    this.map = new Map();
+    window.map = this.map;
+    this.map.generate().then(image => {
+      this.setState({
+        image: image,
+      });
+    });
   }
 
   render() {
+    let displayContent = null;
+    if (this.state.image) {
+      displayContent = (
+        <img src={this.state.image} alt="A map" />
+      );
+    }
+
     return (
       <div className="creator">
         <div
@@ -54,7 +69,7 @@ class Creator extends Component {
           style={ { height: this.state.displayHeight } }
           ref={display => this.display = display}
         >
-
+          {displayContent}
         </div>
 
         <div className="toolbar">

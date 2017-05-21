@@ -5,6 +5,7 @@ module.exports = {
         alias: {
             components: paths.components,
             store: paths.store,
+            lib: paths.lib,
         },
     },
 };
