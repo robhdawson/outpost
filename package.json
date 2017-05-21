@@ -17,7 +17,8 @@
   "dependencies": {
     "express": "^4.15.3",
     "react": "^15.5.4",
-    "react-dom": "^15.5.4"
+    "react-dom": "^15.5.4",
+    "react-router": "^3.0.5"
   },
   "devDependencies": {
     "autoprefixer": "7.1.0",

@@ -1,15 +1,18 @@
 import React, { Component } from 'react';
+
+import Header from 'components/header';
+
 import './styles.scss';
+
 
 class App extends Component {
   render() {
     return (
-      <div className="container">
-        <div className="header">
+      <div>
+        <Header />
 
-          <div className="content">
-            <h1 className="title">Outpost.</h1>
-          </div>
+        <div className="container">
+            {this.props.children}
         </div>
       </div>
     );
