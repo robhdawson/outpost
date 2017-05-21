@@ -2,11 +2,19 @@ import React from 'react';
 
 import './styles.scss';
 
-const ChunkyButton = ({ children, onClick = null }) => {
+const ChunkyButton = ({ children, onClick = null, disabled = false }) => {
+  const classNames = ['chunky-button'];
+  if (disabled) {
+    classNames.push('disabled');
+  }
+
+  const click = disabled ? null : onClick;
+
   return (
-    <div className="chunky-button"
+    <div className={classNames.join(' ')}
       role="button"
-      onClick={onClick}
+      onClick={click}
+      aria-disabled={disabled}
     >
       {children}
     </div>

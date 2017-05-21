@@ -10,12 +10,14 @@ class Map {
   }
 
   generate() {
-    this.points = generatePoints(this.numberOfPoints);
-
     return new Promise((resolve, reject) => {
-      const image = drawPoints(this.points);
+      window.setTimeout(() => {
+        this.points = generatePoints(this.numberOfPoints);
 
-      resolve(image);
+        const image = drawPoints(this.points);
+
+        resolve(image);
+      }, 0);
     });
   }
 }

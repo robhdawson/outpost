@@ -1,20 +1,48 @@
-// All points generated between -0.5 and 0.5, for a map
-// with a width/height of 1. just multiple em to get other widths.
+// All points generated between 0 and 1.
+
+import { voronoi } from 'd3-voronoi';
 
 function randomPoints(amt) {
   const points = [];
   for (let i = 0; i < amt; i++) {
     points.push({
-      x: (Math.random() - 0.5),
-      y: (Math.random() - 0.5),
+      x: Math.random(),
+      y: Math.random(),
     });
   }
 
   return points;
-};
+}
+
+function centroid(polygonPoints) {
+  let x = 0;
+  let y = 0;
+
+  polygonPoints.forEach((point) => {
+    x += point[0];
+    y += point[1];
+  });
+
+  return {
+    x: x/polygonPoints.length,
+    y: y/polygonPoints.length,
+  };
+}
+
+function makeGood(points, iterations = 1) {
+  let pts = points;
+  const v = voronoi()
+    .x(d => d.x)
+    .y(d => d.y)
+    .size([1, 1]);
+
+  for (let i = 0; i < iterations; i++) {
+    pts = v.polygons(pts).map(centroid);
+  }
+
+  return pts;
+}
 
 export function generatePoints(amt) {
-  const random = randomPoints(amt);
-
-  return random;
+  return makeGood(randomPoints(amt), 3);
 }

@@ -11,8 +11,8 @@ function getCanvas() {
 
 function translate(point) {
   return {
-    x: (point.x + 0.5) * WIDTH,
-    y: (point.y + 0.5) * HEIGHT,
+    x: point.x * WIDTH,
+    y: point.y * HEIGHT,
   }
 }
 

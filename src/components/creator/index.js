@@ -16,15 +16,17 @@ class Creator extends Component {
     this.state = {
       displayHeight: 0,
       image: null,
+      loading: false,
     };
 
     this.updateDisplaySize = this.updateDisplaySize.bind(this);
+    this.click = this.click.bind(this);
     this.generate = this.generate.bind(this);
   }
 
   componentDidMount() {
     // this.props.hideHeader();
-
+    this.map = new Map();
     this.updateDisplaySize();
     window.addEventListener('resize', this.updateDisplaySize);
   }
@@ -44,12 +46,21 @@ class Creator extends Component {
     });
   }
 
+  click() {
+    if (this.state.loading) {
+      return;
+    }
+
+    this.setState({
+      loading: true,
+    }, this.generate);
+  }
+
   generate() {
-    this.map = new Map();
-    window.map = this.map;
     this.map.generate().then(image => {
       this.setState({
         image: image,
+        loading: false,
       });
     });
   }
@@ -58,7 +69,11 @@ class Creator extends Component {
     let displayContent = null;
     if (this.state.image) {
       displayContent = (
-        <img src={this.state.image} alt="A map" />
+        <img
+          src={this.state.image}
+          title="Outpost map"
+          alt="A map of your outpost"
+        />
       );
     }
 
@@ -73,7 +88,7 @@ class Creator extends Component {
         </div>
 
         <div className="toolbar">
-          <ChunkyButton onClick={this.generate}>
+          <ChunkyButton onClick={this.click} disabled={this.state.loading}>
             Generate
           </ChunkyButton>
         </div>
