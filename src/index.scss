@@ -3,11 +3,18 @@
 @import './reset';
 
 body {
-    font-family: $serif;
+  font-family: $serif;
+  font-size: 16px;
 }
 
 a {
-    text-decoration: none;
-    color: inherit;
-    cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+p {
+  width: 100%;
+  margin: 12px 0;
+
 }

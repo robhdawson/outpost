@@ -1,0 +1,11 @@
+@import 'styles/global';
+
+.landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .words {
+    margin-bottom: 24px;
+  }
+}
