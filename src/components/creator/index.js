@@ -16,6 +16,7 @@ class Creator extends Component {
     };
 
     this.updateDisplaySize = this.updateDisplaySize.bind(this);
+    this.generate = this.generate.bind(this);
   }
 
   componentDidMount() {
@@ -41,6 +42,10 @@ class Creator extends Component {
     });
   }
 
+  generate() {
+    window.alert('doesn\'t do anything yet :(');
+  }
+
   render() {
     return (
       <div className="creator">
@@ -53,7 +58,7 @@ class Creator extends Component {
         </div>
 
         <div className="toolbar">
-          <ChunkyButton>
+          <ChunkyButton onClick={this.generate}>
             Generate
           </ChunkyButton>
         </div>

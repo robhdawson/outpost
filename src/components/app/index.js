@@ -16,7 +16,7 @@ class App extends Component {
     }
 
     return (
-      <div>
+      <div className="app">
         <Header />
 
         <div className={containerClassNames.join(' ')}>
