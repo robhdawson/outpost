@@ -4,6 +4,7 @@ module.exports = {
     resolve: {
         alias: {
             components: paths.components,
+            store: paths.store,
         },
     },
 };

@@ -55,4 +55,5 @@ module.exports = {
 
   components: resolveApp('src/components'),
   styles: resolveApp('src/styles'),
+  store: resolveApp('src/store'),
 };
