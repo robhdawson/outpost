@@ -74,11 +74,11 @@ function drawLines(lines, { color = '#333', lineWidth = 1 }, c) {
 export function drawMesh(mesh, c) {
   let canvas = c || getCanvas();
 
-  // drawLines(mesh.cornerEdges(), {color: '#333'}, canvas);
-  drawLines(mesh.centerEdges(), {color: '#333'}, canvas);
+  drawLines(mesh.triangleEdges(), {color: '#333'}, canvas);
+  // drawLines(mesh.polygonEdges(), {color: '#ccc'}, canvas);
 
-  // drawPoints(mesh.centers, {color: '#c00', r: 1}, canvas);
-  // drawPoints(mesh.corners, {color: '#00c', r: 1}, canvas);
+  // drawPoints(mesh.centers, {color: '#c00', r: 3}, canvas);
+  // drawPoints(mesh.corners, {color: '#00c', r: 4}, canvas);
 
   return canvas;
 }

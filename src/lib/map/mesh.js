@@ -2,6 +2,10 @@ import { voronoi as Voronoi } from 'd3-voronoi';
 
 export const vertexToString = (v) => `${v[0]}|${v[1]}`;
 
+/**
+ * Centers are polygon centers.
+ * Corners are triangle centers.
+ */
 class Mesh {
   constructor(centers) {
     const voronoi = Voronoi()
@@ -119,8 +123,29 @@ class Mesh {
       formattedEdge.corner0 = corner0;
       formattedEdge.corner1 = corner1;
 
+      if (
+        corner0.protrudes.length === 3 &&
+        corner0.protrudes.filter(p => p.hasCenters).length === 3
+      ) {
+        corner0.isTriangle = true;
+      }
+
+      if (
+        corner1.protrudes.length === 3 &&
+        corner1.protrudes.filter(p => p.hasCenters).length === 3
+      ) {
+        corner1.isTriangle = true;
+      }
+
       edges.push(formattedEdge);
     });
+
+    // Now we tell corners that their neighbors are the
+    // adjacent corners that are ALSO full triangles.
+    corners.forEach((corner) => {
+      corner.neighbors = corner.adjacent.filter(a => a.isTriangle);
+    });
+
 
     Object.assign(this, {
       centers,
@@ -131,7 +156,7 @@ class Mesh {
     });
   }
 
-  centerEdges() {
+  triangleEdges() {
     return this.edges.map((edge) => {
       if (edge.hasCenters) {
         return [edge.center0, edge.center1];
@@ -140,7 +165,7 @@ class Mesh {
     }).filter(e => !!e);
   }
 
-  cornerEdges() {
+  polygonEdges() {
     return this.edges.map((edge) => {
       return [edge.corner0, edge.corner1];
     }).filter(e => !!e);
