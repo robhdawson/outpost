@@ -44,5 +44,14 @@ function makeGood(points, iterations = 1) {
 }
 
 export function generatePoints(amt) {
-  return makeGood(randomPoints(amt), 3);
+  const points = makeGood(randomPoints(amt), 3);
+
+  let id = 0;
+
+  points.forEach((point) => {
+    point.id = id;
+    id++;
+  });
+
+  return points;
 }

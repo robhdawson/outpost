@@ -1,5 +1,3 @@
-import { stringToVertex, vertexToString } from './mesh';
-
 // All canvases made to be 600 x 600;
 const WIDTH = 600;
 const HEIGHT = 600;
@@ -12,6 +10,10 @@ function getCanvas() {
 }
 
 function translate(point) {
+  if (Array.isArray(point)) {
+    return translateArray(point);
+  }
+
   return {
     x: point.x * WIDTH,
     y: point.y * HEIGHT,
@@ -39,27 +41,27 @@ function drawCircle(ctx, center, r, color = '#333') {
   ctx.closePath();
 }
 
-export function drawPoints(points = [], c) {
+function drawPoints(points = [], { color = '#333', r = 2 }, c) {
   const canvas = c || getCanvas();
   const ctx = canvas.getContext('2d');
 
   points.forEach((point) => {
-    drawCircle(ctx, translate(point), 2);
+    drawCircle(ctx, translate(point), r, color);
   });
 
   return canvas;
 }
 
-export function drawMesh(mesh, c) {
-  let canvas = c || getCanvas();
+function drawLines(lines, { color = '#333', lineWidth = 1 }, c) {
+  const canvas = c || getCanvas();
   const ctx = canvas.getContext('2d');
 
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = '#333';
+  ctx.lineWidth = lineWidth;
+  ctx.strokeStyle = color;
 
-  mesh.edges.forEach((edge) => {
-    const s = translateArray(edge[0]);
-    const e = translateArray(edge[1]);
+  lines.forEach((line) => {
+    const s = translate(line[0]);
+    const e = translate(line[1]);
 
     ctx.beginPath();
     ctx.moveTo(s.x, s.y);
@@ -67,35 +69,16 @@ export function drawMesh(mesh, c) {
     ctx.stroke();
     ctx.closePath();
   });
-
-  // canvas = drawAdjacencies(mesh, canvas);
-  // canvas = drawPoints(mesh.points, canvas);
-
-  return canvas;
 }
 
-export function drawAdjacencies(mesh, c) {
-  const canvas = c || getCanvas();
-  const ctx = canvas.getContext('2d');
+export function drawMesh(mesh, c) {
+  let canvas = c || getCanvas();
 
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = '#e00';
+  drawLines(mesh.cornerEdges(), {color: '#333'}, canvas);
+  drawLines(mesh.centerEdges(), {color: '#ccc'}, canvas);
 
-  Object.keys(mesh.adjacencies).forEach((vertexId) => {
-    const connects = mesh.adjacencies[vertexId]
-      .filter(v => !!v)
-      .map(translateArray);
-
-    const point = translateArray(stringToVertex(vertexId));
-
-    connects.forEach((end) => {
-      ctx.beginPath();
-      ctx.moveTo(point.x, point.y);
-      ctx.lineTo(end.x, end.y);
-      ctx.stroke();
-      ctx.closePath();
-    });
-  });
+  drawPoints(mesh.centers, {color: '#c00', r: 4}, canvas);
+  drawPoints(mesh.corners, {color: '#00c', r: 3}, canvas);
 
   return canvas;
 }

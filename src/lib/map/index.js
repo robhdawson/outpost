@@ -14,8 +14,8 @@ class Map {
   generate() {
     return new Promise((resolve, reject) => {
       window.setTimeout(() => {
-        this.points = generatePoints(this.numberOfPoints);
-        this.mesh = new Mesh(this.points);
+        const points = generatePoints(this.numberOfPoints);
+        this.mesh = new Mesh(points);
 
         const canvas = drawMesh(this.mesh);
 
