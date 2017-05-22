@@ -1,6 +1,6 @@
-// All canvases made to be 600 x 600;
-const WIDTH = 600;
-const HEIGHT = 600;
+// All canvases made to be 1200 x 1200;
+const WIDTH = 1200;
+const HEIGHT = 1200;
 
 function getCanvas() {
   const canvas = document.createElement('canvas');
@@ -52,7 +52,7 @@ function drawPoints(points = [], { color = '#333', r = 2 }, c) {
   return canvas;
 }
 
-function drawLines(lines, { color = '#333', lineWidth = 1 }, c) {
+function drawLines(lines, { color = '#333', lineWidth = 2 }, c) {
   const canvas = c || getCanvas();
   const ctx = canvas.getContext('2d');
 
