@@ -1,3 +1,5 @@
+import { stringToVertex, vertexToString } from './mesh';
+
 // All canvases made to be 600 x 600;
 const WIDTH = 600;
 const HEIGHT = 600;
@@ -42,14 +44,14 @@ export function drawPoints(points = [], c) {
   const ctx = canvas.getContext('2d');
 
   points.forEach((point) => {
-    drawCircle(ctx, translate(point), 3);
+    drawCircle(ctx, translate(point), 2);
   });
 
   return canvas;
 }
 
 export function drawMesh(mesh, c) {
-  const canvas = c || getCanvas();
+  let canvas = c || getCanvas();
   const ctx = canvas.getContext('2d');
 
   ctx.lineWidth = 1;
@@ -66,9 +68,34 @@ export function drawMesh(mesh, c) {
     ctx.closePath();
   });
 
+  // canvas = drawAdjacencies(mesh, canvas);
+  // canvas = drawPoints(mesh.points, canvas);
+
   return canvas;
 }
 
-export function drawTriangles(mesh, c) {
+export function drawAdjacencies(mesh, c) {
+  const canvas = c || getCanvas();
+  const ctx = canvas.getContext('2d');
 
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = '#e00';
+
+  Object.keys(mesh.adjacencies).forEach((vertexId) => {
+    const connects = mesh.adjacencies[vertexId]
+      .filter(v => !!v)
+      .map(translateArray);
+
+    const point = translateArray(stringToVertex(vertexId));
+
+    connects.forEach((end) => {
+      ctx.beginPath();
+      ctx.moveTo(point.x, point.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+      ctx.closePath();
+    });
+  });
+
+  return canvas;
 }

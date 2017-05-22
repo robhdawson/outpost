@@ -2,7 +2,7 @@ import { voronoi as Voronoi } from 'd3-voronoi';
 
 export const vertexToString = (v) => `${v[0]}|${v[1]}`;
 export const stringToVertex = (s) => {
-  s.split('|').map(parseFloat);
+  return s.split('|').map(parseFloat);
 };
 
 class Mesh {
