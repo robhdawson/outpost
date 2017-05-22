@@ -40,3 +40,28 @@ export function drawPoints(points = []) {
 
   return canvas.toDataURL();
 }
+
+export function drawMesh(mesh, points = null) {
+  const canvas = getCanvas();
+  const ctx = canvas.getContext('2d');
+
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#333';
+
+  mesh.edges.forEach((edge) => {
+    const s = translate({x: edge[0][0], y: edge[0][1]});
+    const e = translate({x: edge[1][0], y: edge[1][1]});
+
+    ctx.beginPath();
+    ctx.moveTo(s.x, s.y);
+    ctx.lineTo(e.x, e.y);
+    ctx.stroke();
+    ctx.closePath();
+  });
+
+  if (points) {
+    points.forEach(p => drawCircle(ctx, translate(p), 2));
+  }
+
+  return canvas.toDataURL();
+}

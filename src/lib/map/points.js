@@ -1,6 +1,6 @@
 // All points generated between 0 and 1.
 
-import { voronoi } from 'd3-voronoi';
+import { voronoi as Voronoi } from 'd3-voronoi';
 
 function randomPoints(amt) {
   const points = [];
@@ -31,13 +31,13 @@ function centroid(polygonPoints) {
 
 function makeGood(points, iterations = 1) {
   let pts = points;
-  const v = voronoi()
+  const voronoi = Voronoi()
     .x(d => d.x)
     .y(d => d.y)
     .size([1, 1]);
 
   for (let i = 0; i < iterations; i++) {
-    pts = v.polygons(pts).map(centroid);
+    pts = voronoi.polygons(pts).map(centroid);
   }
 
   return pts;
