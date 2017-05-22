@@ -57,6 +57,7 @@ class Creator extends Component {
   }
 
   generate() {
+    this.map.numberOfPoints = (Math.floor(Math.random() * 100) + 50) * 14;
     this.map.generate().then(image => {
       this.setState({
         image: image,

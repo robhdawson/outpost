@@ -6,8 +6,8 @@ import { drawMesh } from './draw.js';
 const NUMBER_OF_POINTS = 2096;
 
 class Map {
-  constructor() {
-    this.numberOfPoints = NUMBER_OF_POINTS;
+  constructor({ numberOfPoints } = {}) {
+    this.numberOfPoints = numberOfPoints || NUMBER_OF_POINTS;
     window.map = this;
   }
 
@@ -17,8 +17,9 @@ class Map {
         this.points = generatePoints(this.numberOfPoints);
         this.mesh = new Mesh(this.points);
 
-        const image = drawMesh(this.mesh, this.points);
+        const canvas = drawMesh(this.mesh);
 
+        const image = canvas.toDataURL();
         resolve(image);
       }, 0);
     });

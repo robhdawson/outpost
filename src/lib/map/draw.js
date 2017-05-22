@@ -16,6 +16,13 @@ function translate(point) {
   }
 }
 
+function translateArray(point) {
+  return translate({
+    x: point[0],
+    y: point[1],
+  });
+}
+
 function drawCircle(ctx, center, r, color = '#333') {
   ctx.beginPath();
   ctx.arc(
@@ -30,27 +37,27 @@ function drawCircle(ctx, center, r, color = '#333') {
   ctx.closePath();
 }
 
-export function drawPoints(points = []) {
-  const canvas = getCanvas();
+export function drawPoints(points = [], c) {
+  const canvas = c || getCanvas();
   const ctx = canvas.getContext('2d');
 
   points.forEach((point) => {
     drawCircle(ctx, translate(point), 3);
   });
 
-  return canvas.toDataURL();
+  return canvas;
 }
 
-export function drawMesh(mesh, points = null) {
-  const canvas = getCanvas();
+export function drawMesh(mesh, c) {
+  const canvas = c || getCanvas();
   const ctx = canvas.getContext('2d');
 
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 1;
   ctx.strokeStyle = '#333';
 
   mesh.edges.forEach((edge) => {
-    const s = translate({x: edge[0][0], y: edge[0][1]});
-    const e = translate({x: edge[1][0], y: edge[1][1]});
+    const s = translateArray(edge[0]);
+    const e = translateArray(edge[1]);
 
     ctx.beginPath();
     ctx.moveTo(s.x, s.y);
@@ -59,9 +66,9 @@ export function drawMesh(mesh, points = null) {
     ctx.closePath();
   });
 
-  if (points) {
-    points.forEach(p => drawCircle(ctx, translate(p), 2));
-  }
+  return canvas;
+}
 
-  return canvas.toDataURL();
+export function drawTriangles(mesh, c) {
+
 }
