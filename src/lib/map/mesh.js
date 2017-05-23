@@ -1,5 +1,7 @@
 import { voronoi as Voronoi } from 'd3-voronoi';
 
+import { generatePoints } from './points.js';
+
 export const vertexToString = (v) => `${v[0]}|${v[1]}`;
 
 /**
@@ -7,19 +9,37 @@ export const vertexToString = (v) => `${v[0]}|${v[1]}`;
  * Corners are triangle centers.
  */
 class Mesh {
-  constructor(centers) {
+  constructor(numberOfPoints) {
+    this.generateMesh(numberOfPoints);
+  }
+
+  triangleEdges() {
+    return this.edges.map((edge) => {
+      if (edge.hasCenters) {
+        return [edge.center0, edge.center1];
+      }
+      return null;
+    }).filter(e => !!e);
+  }
+
+  polygonEdges() {
+    return this.edges.map((edge) => {
+      return [edge.corner0, edge.corner1];
+    }).filter(e => !!e);
+  }
+
+  generateMesh(numberOfPoints) {
+    const polygonCenters = generatePoints(numberOfPoints);
+
     const voronoi = Voronoi()
       .x(d => d.x)
       .y(d => d.y)
-      .size([1, 1])(centers);
+      .size([1, 1])(polygonCenters);
 
-    const centersById = {};
     const cornersById = {};
 
     const edges = [];
     const corners = [];
-
-    centers.forEach(c => centersById[c.id] = c);
 
     voronoi.edges.forEach((edge) => {
       const formattedEdge = {};
@@ -49,6 +69,7 @@ class Mesh {
       const corner0 = cornersById[cornerId0] || {
         x: edge[0][0],
         y: edge[0][1],
+        height: 0.5,
         touches: [],
         protrudes: [],
         adjacent: [],
@@ -62,6 +83,7 @@ class Mesh {
       const corner1 = cornersById[cornerId1] || {
         x: edge[1][0],
         y: edge[1][1],
+        height: 0.5,
         touches: [],
         protrudes: [],
         adjacent: [],
@@ -148,27 +170,11 @@ class Mesh {
 
 
     Object.assign(this, {
-      centers,
-      edges,
-      corners,
-
       voronoi,
+      edges,
+      polygonCenters,
+      points: corners,
     });
-  }
-
-  triangleEdges() {
-    return this.edges.map((edge) => {
-      if (edge.hasCenters) {
-        return [edge.center0, edge.center1];
-      }
-      return null;
-    }).filter(e => !!e);
-  }
-
-  polygonEdges() {
-    return this.edges.map((edge) => {
-      return [edge.corner0, edge.corner1];
-    }).filter(e => !!e);
   }
 }
 

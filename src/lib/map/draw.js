@@ -77,8 +77,8 @@ export function drawMesh(mesh, c) {
   drawLines(mesh.triangleEdges(), {color: '#333'}, canvas);
   // drawLines(mesh.polygonEdges(), {color: '#ccc'}, canvas);
 
-  // drawPoints(mesh.centers, {color: '#c00', r: 3}, canvas);
-  // drawPoints(mesh.corners, {color: '#00c', r: 4}, canvas);
+  // drawPoints(mesh.polygonCenters, {color: '#c00', r: 3}, canvas);
+  // drawPoints(mesh.points, {color: '#00c', r: 4}, canvas);
 
   return canvas;
 }

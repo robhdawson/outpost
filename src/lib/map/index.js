@@ -1,4 +1,3 @@
-import { generatePoints } from './points.js';
 import Mesh from './mesh';
 
 import { drawMesh } from './draw.js';
@@ -14,8 +13,7 @@ class Map {
   generate() {
     return new Promise((resolve, reject) => {
       window.setTimeout(() => {
-        const points = generatePoints(this.numberOfPoints);
-        this.mesh = new Mesh(points);
+        this.mesh = new Mesh(this.numberOfPoints);
 
         const canvas = drawMesh(this.mesh);
 
