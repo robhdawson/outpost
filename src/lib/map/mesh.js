@@ -1,4 +1,4 @@
-import { voronoi as Voronoi } from 'd3-voronoi';
+import { voronoi as Voronoi, median } from 'd3';
 
 import { generatePoints } from './points';
 import { rnorm } from './random';
@@ -16,6 +16,8 @@ class Mesh {
 
   makeIntoCoast() {
     this.addRandomSlope();
+
+    this.addSensibleCoast();
   }
 
   triangleEdges() {
@@ -206,6 +208,33 @@ class Mesh {
     this.points.forEach((point) => {
       point.height += (point.x * vector.x + point.y * vector.y);
     });
+  }
+
+  addSensibleCoast() {
+    const heights = this.points.map(p => p.height);
+    this.addCoast(median(heights));
+  }
+
+  addCoast(seaLevel) {
+    const coastline = [];
+
+    this.edges.forEach((edge) => {
+      if (!edge.hasCenters) {
+        return;
+      }
+
+      const one = edge.corner0;
+      const two = edge.corner1;
+
+      if (
+        (one.height > seaLevel && two.height <= seaLevel) ||
+        (one.height <= seaLevel && two.height > seaLevel)
+      ) {
+        coastline.push([edge.center0, edge.center1]);
+      }
+    });
+
+    this.coastline = coastline;
   }
 }
 

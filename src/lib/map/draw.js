@@ -80,7 +80,10 @@ function fillShapes(shapes, colorCallback, c) {
   const ctx = canvas.getContext('2d');
 
   shapes.forEach((shape) => {
-    ctx.fillStyle = colorCallback(shape);
+    const color = colorCallback(shape)
+    ctx.fillStyle = color;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
 
     const v0 = translate(shape.vertices[0]);
     const v1 = translate(shape.vertices[1]);
@@ -92,6 +95,7 @@ function fillShapes(shapes, colorCallback, c) {
     ctx.lineTo(v2.x, v2.y);
     ctx.lineTo(v0.x, v0.y);
     ctx.fill();
+    ctx.stroke();
     ctx.closePath();
   });
 
@@ -120,7 +124,9 @@ export function drawMesh(mesh, c) {
     canvas
   );
 
-  drawLines(mesh.triangleEdges(), {color: '#111'}, canvas);
+  drawLines(mesh.coastline, { color: '#111', lineWidth: 2 }, canvas);
+
+  // drawLines(mesh.triangleEdges(), {color: '#111'}, canvas);
 
 
   // drawLines(mesh.polygonEdges(), {color: '#ccc'}, canvas);
