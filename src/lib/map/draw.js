@@ -1,3 +1,5 @@
+import { max, min, scaleLinear } from 'd3';
+
 // All canvases made to be 1200 x 1200;
 const WIDTH = 1200;
 const HEIGHT = 1200;
@@ -27,30 +29,30 @@ function translateArray(point) {
   });
 }
 
-function drawCircle(ctx, center, r, color = '#333') {
-  ctx.beginPath();
-  ctx.arc(
-    center.x,
-    center.y,
-    r,
-    0,
-    Math.PI * 2
-  );
-  ctx.fillStyle = color;
-  ctx.fill();
-  ctx.closePath();
-}
+// function drawCircle(ctx, center, r, color = '#333') {
+//   ctx.beginPath();
+//   ctx.arc(
+//     center.x,
+//     center.y,
+//     r,
+//     0,
+//     Math.PI * 2
+//   );
+//   ctx.fillStyle = color;
+//   ctx.fill();
+//   ctx.closePath();
+// }
 
-function drawPoints(points = [], { color = '#333', r = 2 }, c) {
-  const canvas = c || getCanvas();
-  const ctx = canvas.getContext('2d');
+// function drawPoints(points = [], { color = '#333', r = 2 }, c) {
+//   const canvas = c || getCanvas();
+//   const ctx = canvas.getContext('2d');
 
-  points.forEach((point) => {
-    drawCircle(ctx, translate(point), r, color);
-  });
+//   points.forEach((point) => {
+//     drawCircle(ctx, translate(point), r, color);
+//   });
 
-  return canvas;
-}
+//   return canvas;
+// }
 
 function drawLines(lines, { color = '#333', lineWidth = 2 }, c) {
   const canvas = c || getCanvas();
@@ -69,12 +71,58 @@ function drawLines(lines, { color = '#333', lineWidth = 2 }, c) {
     ctx.stroke();
     ctx.closePath();
   });
+
+  return canvas;
+}
+
+function fillShapes(shapes, colorCallback, c) {
+  const canvas = c || getCanvas();
+  const ctx = canvas.getContext('2d');
+
+  shapes.forEach((shape) => {
+    ctx.fillStyle = colorCallback(shape);
+
+    const v0 = translate(shape.vertices[0]);
+    const v1 = translate(shape.vertices[1]);
+    const v2 = translate(shape.vertices[2]);
+
+    ctx.beginPath();
+    ctx.moveTo(v0.x, v0.y);
+    ctx.lineTo(v1.x, v1.y);
+    ctx.lineTo(v2.x, v2.y);
+    ctx.lineTo(v0.x, v0.y);
+    ctx.fill();
+    ctx.closePath();
+  });
+
+  return canvas;
 }
 
 export function drawMesh(mesh, c) {
-  let canvas = c || getCanvas();
+  const canvas = c || getCanvas();
 
-  drawLines(mesh.triangleEdges(), {color: '#333'}, canvas);
+  // draw heightmap
+  const heights = mesh.points.map(p => p.height);
+  const minH = min(heights);
+  const maxH = max(heights);
+
+  const colorScale = scaleLinear()
+    .domain([minH, maxH])
+    .range(['#0b0228', '#e0d9f7']);
+
+  const colorForTriangle = (shape) => {
+    return colorScale(shape.center.height);
+  };
+
+  fillShapes(
+    mesh.triangles(),
+    colorForTriangle,
+    canvas
+  );
+
+  drawLines(mesh.triangleEdges(), {color: '#111'}, canvas);
+
+
   // drawLines(mesh.polygonEdges(), {color: '#ccc'}, canvas);
 
   // drawPoints(mesh.polygonCenters, {color: '#c00', r: 3}, canvas);

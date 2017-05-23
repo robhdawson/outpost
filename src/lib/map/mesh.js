@@ -1,16 +1,21 @@
 import { voronoi as Voronoi } from 'd3-voronoi';
 
-import { generatePoints } from './points.js';
+import { generatePoints } from './points';
+import { rnorm } from './random';
 
 export const vertexToString = (v) => `${v[0]}|${v[1]}`;
 
 /**
  * Centers are polygon centers.
- * Corners are triangle centers.
+ * Points/corners are triangle centers.
  */
 class Mesh {
   constructor(numberOfPoints) {
     this.generateMesh(numberOfPoints);
+  }
+
+  makeIntoCoast() {
+    this.addRandomSlope();
   }
 
   triangleEdges() {
@@ -20,6 +25,17 @@ class Mesh {
       }
       return null;
     }).filter(e => !!e);
+  }
+
+  triangles() {
+    return this.points
+      .filter(point => point.isTriangle)
+      .map((point) => {
+        return {
+          center: point,
+          vertices: point.touches,
+        };
+      });
   }
 
   polygonEdges() {
@@ -69,7 +85,7 @@ class Mesh {
       const corner0 = cornersById[cornerId0] || {
         x: edge[0][0],
         y: edge[0][1],
-        height: 0.5,
+        height: 0,
         touches: [],
         protrudes: [],
         adjacent: [],
@@ -83,7 +99,7 @@ class Mesh {
       const corner1 = cornersById[cornerId1] || {
         x: edge[1][0],
         y: edge[1][1],
-        height: 0.5,
+        height: 0,
         touches: [],
         protrudes: [],
         adjacent: [],
@@ -174,6 +190,21 @@ class Mesh {
       edges,
       polygonCenters,
       points: corners,
+    });
+  }
+
+  addRandomSlope() {
+    const s = 4;
+
+    this.addSlope({
+      x: rnorm() * s,
+      y: rnorm() * s,
+    });
+  }
+
+  addSlope(vector) {
+    this.points.forEach((point) => {
+      point.height += (point.x * vector.x + point.y * vector.y);
     });
   }
 }

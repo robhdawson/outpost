@@ -14,6 +14,7 @@ class Map {
     return new Promise((resolve, reject) => {
       window.setTimeout(() => {
         this.mesh = new Mesh(this.numberOfPoints);
+        this.mesh.makeIntoCoast();
 
         const canvas = drawMesh(this.mesh);
 
