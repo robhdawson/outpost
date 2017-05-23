@@ -247,6 +247,7 @@ class Mesh {
       }
     });
 
+    this.seaLevel = seaLevel;
     this.coastline = coastline;
   }
 
