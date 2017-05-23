@@ -2,7 +2,7 @@
 
 import { voronoi as Voronoi } from 'd3-voronoi';
 
-function randomPoints(amt) {
+export function randomPoints(amt) {
   const points = [];
   for (let i = 0; i < amt; i++) {
     points.push({
@@ -54,4 +54,10 @@ export function generatePoints(amt) {
   });
 
   return points;
+}
+
+export function distance(a, b) {
+  return Math.sqrt(
+    Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2)
+  );
 }

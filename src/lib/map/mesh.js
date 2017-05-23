@@ -1,6 +1,16 @@
-import { voronoi as Voronoi, median } from 'd3';
+import {
+  voronoi as Voronoi,
+  scaleLinear,
+  median,
+  mean
+} from 'd3';
 
-import { generatePoints } from './points';
+import {
+  randomPoints,
+  generatePoints,
+  distance
+} from './points';
+
 import { rnorm } from './random';
 
 export const vertexToString = (v) => `${v[0]}|${v[1]}`;
@@ -16,6 +26,9 @@ class Mesh {
 
   makeIntoCoast() {
     this.addRandomSlope();
+    this.addRandomBumps();
+
+    this.relaxHeights();
 
     this.addSensibleCoast();
   }
@@ -235,6 +248,38 @@ class Mesh {
     });
 
     this.coastline = coastline;
+  }
+
+  addRandomBumps() {
+    const widthInPoints = Math.sqrt(this.points.length);
+    const pointWidth = 1 / widthInPoints;
+
+    const numBumps = Math.ceil(Math.sqrt(this.points.length / 2));
+
+    this.addBumps(numBumps, 1, pointWidth * 10)
+  }
+
+  addBumps(n, height, radius) {
+    console.log('addBumps', arguments);
+    const bumpCenters = randomPoints(n);
+
+    const scale = scaleLinear().domain([0, radius]).range([height, 0]);
+
+    this.points.forEach((point) => {
+      bumpCenters.forEach((bumpCenter) => {
+        const dist = distance(point, bumpCenter);
+        if (dist > radius) {
+          return;
+        }
+        point.height += scale(dist);
+      });
+    });
+  }
+
+  relaxHeights() {
+    this.points.forEach((point) => {
+      point.height = mean(point.neighbors.map(p => p.height));
+    });
   }
 }
 
