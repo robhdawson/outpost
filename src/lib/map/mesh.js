@@ -2,7 +2,9 @@ import {
   voronoi as Voronoi,
   scaleLinear,
   quantile,
-  mean
+  mean,
+  min,
+  max
 } from 'd3';
 
 import {
@@ -30,17 +32,17 @@ class Mesh {
     this.addRandomCone();
     this.addRandomBumps();
 
-    this.relaxHeights(2);
+    // this.relaxHeights(2);
 
     this.findSeaLevel();
 
-    this.niceErode();
+    this.niceErode(10);
 
-    this.findSeaLevel();
+    // this.findSeaLevel();
 
 
     // this depends on sea level
-    this.smoothCoast(3);
+    this.smoothCoast(1);
 
 
     // This has to be last, so it comes after
@@ -337,30 +339,32 @@ class Mesh {
 
       if (point.height > this.seaLevel) {
         // if it's above sea level, but most of the neighbors are below,
-        // move it up.
+        // move it down.
         const downNeighbs = neighborHeights.filter(h => h <= this.seaLevel);
 
-        if (downNeighbs.length >= point.neighbors.length / 2) {
+        if (downNeighbs.length >= point.neighbors.length) {
           point.height = mean(downNeighbs);
         }
       } else if  (point.height <= this.seaLevel) {
         // vice-versa
         const upNeighbs = neighborHeights.filter(h => h > this.seaLevel);
 
-        if (upNeighbs.length >= point.neighbors.length / 2) {
+        if (upNeighbs.length >= point.neighbors.length) {
           point.height = mean(upNeighbs);
         }
       }
     });
   }
 
-  niceErode() {
-    const iterations = 5;
+  niceErode(iterations = 5) {
+    const heights = this.points.map(p => p.height);
+    const span = max(heights) - min(heights)
+    const maxErode = span / 8;
+    const minErode = span / 10;
 
     for (let i = 0; i < iterations; i++) {
       this.fillSinks();
-      // this.erode(randInRange(4, 7));
-      this.erode(20);
+      this.erode(randInRange(minErode, maxErode));
     }
 
     this.fillSinks();

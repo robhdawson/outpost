@@ -111,7 +111,7 @@ export function drawMesh(mesh, c) {
   const maxH = max(heights);
 
   const colorScale = scaleLinear()
-    .domain([minH, mesh.seaLevel - 0.05, mesh.seaLevel + 0.05, maxH])
+    .domain([minH, mesh.seaLevel - 0.04, mesh.seaLevel + 0.04, maxH])
     .range(['#04023f', '#6e6d9e', '#969e71', '#fdfff4']);
 
   const colorForTriangle = (shape) => {
@@ -124,10 +124,19 @@ export function drawMesh(mesh, c) {
     canvas
   );
 
-  drawLines(mesh.coastline, { color: '#111', lineWidth: 2 }, canvas);
+  // drawLines(mesh.coastline, { color: '#111', lineWidth: 2 }, canvas);
 
   // drawLines(mesh.downhillLines(), { color: '#e11', lineWidth: 1 }, canvas);
 
+  // const fluxes = mesh.points.map(p => p.flux);
+  // const fluxScale = scaleLinear()
+  //   .domain([0, max(fluxes)])
+  //   .range([2, 4]);
+
+  // const ctx = canvas.getContext('2d');
+  // mesh.points.forEach((point) => {
+  //   drawCircle(ctx, translate(point), fluxScale(point.flux), '#1e1');
+  // });
   // drawLines(mesh.triangleEdges(), {color: '#111'}, canvas);
 
 

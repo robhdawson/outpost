@@ -83,7 +83,7 @@ class Creator extends Component {
     }
 
     this.map.numberOfPoints = (Math.floor(Math.random() * 11) + 6) * 500;
-    // this.map.numberOfPoints = 2000;
+    // this.map.numberOfPoints = 500;
 
     this.map.generate().then(this.renderImage);
   }
@@ -111,8 +111,6 @@ class Creator extends Component {
     window.setTimeout(() => {
       this.map.mesh.findSeaLevel();
       this.map.mesh.niceErode();
-      this.map.mesh.findSeaLevel();
-      this.map.mesh.smoothCoast(3);
       this.map.mesh.findCoastline();
 
       this.drawMap();
@@ -136,7 +134,7 @@ class Creator extends Component {
     if (this.map && this.map.mesh) {
       mapButtons = (
         <ChunkyButton onClick={this.erodeClick} disabled={this.state.loading}>
-          Erode (kinda) (it is broken)
+          Erode
         </ChunkyButton>
       );
     }

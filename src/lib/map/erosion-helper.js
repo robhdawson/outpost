@@ -1,4 +1,4 @@
-import { max } from 'd3';
+import { min, max, scaleLinear } from 'd3';
 
 const epsilon = 0.00001;
 const infinity = 9999999;
@@ -15,6 +15,11 @@ export function planchonDarboux(points) {
   recursivelyIterate(points);
 
   points.forEach((point, i) => {
+    if (point.newHeight === infinity) {
+      delete point.newHeight;
+      return;
+    }
+
     point.height = point.newHeight;
     delete point.newHeight;
   });
@@ -62,15 +67,32 @@ export function erode(points, seaLevel, amount) {
   setDownhills(points);
 
   setFluxes(points, seaLevel);
-  const slopes = getSlopes(points);
+
+  // const slopes = getSlopes(points);
+  const slopes = [];
 
   const erosionRates = getErosionRates(points, slopes);
-  const maxErosionRate = max(erosionRates);
+  const erosionScale = scaleLinear()
+    .domain([min(erosionRates), max(erosionRates)])
+    .range([0, amount]);
+
+  window.erosionScale = erosionScale;
 
   points.forEach((point, i) => {
-    const er = amount * (erosionRates[i] / maxErosionRate);
-    point.height = point.height - er;
+    const er = erosionRates[i];
+    point.height = point.height - erosionScale(er);
   });
+  return;
+
+
+  // const maxErosionRate = max(erosionRates);
+
+  // points.forEach((point, i) => {
+  //   const er = amount * (erosionRates[i] / maxErosionRate);
+  //   point.height = point.height - er;
+  // });
+
+  // setDownhills(points);
 }
 
 function setDownhills(points) {
@@ -97,13 +119,16 @@ function setDownhills(points) {
 
 function getErosionRates(points, slopes) {
   return points.map((point, i) => {
-    const slope = slopes[i];
+    return point.flux * point.flux * point.flux;
 
-    const river = Math.sqrt(point.flux) * slope * 2;
-    const creep = Math.pow(slope, 2);
+
+    // const slope = slopes[i];
+
+    const river = Math.sqrt(point.flux);
+    // const creep = Math.pow(slope, 2);x
 
     const total = max([
-      1000 * river * creep,
+      1000 * river,
       // 1000,
     ]);
 
@@ -112,17 +137,16 @@ function getErosionRates(points, slopes) {
 }
 
 function setFluxes(points, seaLevel) {
-  const indexes = points.map((p, i) => i);
-  points.forEach((p) => p.flux = 1/points.length);
-
-  indexes.sort((a, b) => {
-    return points[b].height - points[a].height;
+  points.forEach((point) => {
+    point.flux = 1;
   });
 
-  indexes.forEach((i) => {
-    const point = points[i];
+  const pointsByHeight = points.slice(0).sort((a, b) => {
+    return b.height - a.height;
+  });
 
-    if (point.downhill) {
+  pointsByHeight.forEach((point) => {
+    if (point.height >= seaLevel && point.downhill) {
       point.downhill.flux += point.flux;
     }
   });
