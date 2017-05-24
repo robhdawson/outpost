@@ -17,25 +17,29 @@ class Creator extends Component {
       displayHeight: 0,
       image: null,
       loading: false,
-      map: null,
     };
 
     this.updateDisplaySize = this.updateDisplaySize.bind(this);
-    this.click = this.click.bind(this);
+
+    this.generateClick = this.generateClick.bind(this);
+    this.erodeClick = this.erodeClick.bind(this);
+
     this.generate = this.generate.bind(this);
-    this.renderImage = this.renderImage.bind(this);
     this.erode = this.erode.bind(this);
+
+    this.renderImage = this.renderImage.bind(this);
 
     window.creator = this;
   }
 
   componentDidMount() {
     // this.props.hideHeader();
-    this.setState({
-      map: new Map(),
-    });
+    this.map = new Map();
+
     this.updateDisplaySize();
     window.addEventListener('resize', this.updateDisplaySize);
+
+    this.generateClick();
   }
 
   componentWillUnmount() {
@@ -53,7 +57,7 @@ class Creator extends Component {
     });
   }
 
-  click() {
+  generateClick() {
     if (this.state.loading) {
       return;
     }
@@ -63,23 +67,33 @@ class Creator extends Component {
     }, this.generate);
   }
 
-  generate() {
-    if (!this.state.map) {
+  erodeClick() {
+    if (this.state.loading) {
       return;
     }
 
-    this.state.map.numberOfPoints = (Math.floor(Math.random() * 11) + 6) * 500;
-    this.state.map.numberOfPoints = 2000;
+    this.setState({
+      loading: true,
+    }, this.erode);
+  }
 
-    this.state.map.generate().then(this.renderImage);
+  generate() {
+    if (!this.map) {
+      return;
+    }
+
+    this.map.numberOfPoints = (Math.floor(Math.random() * 11) + 6) * 500;
+    // this.map.numberOfPoints = 2000;
+
+    this.map.generate().then(this.renderImage);
   }
 
   drawMap() {
-    if (!this.state.map) {
+    if (!this.map) {
       return;
     }
 
-    this.state.map.draw().then(this.renderImage);
+    this.map.draw().then(this.renderImage);
   }
 
   renderImage(image) {
@@ -90,11 +104,16 @@ class Creator extends Component {
   }
 
   erode() {
-    if (!this.state.map) {
+    if (!this.map) {
       return;
     }
 
-    this.state.map.mesh.niceErode();
+    this.map.mesh.findSeaLevel();
+    this.map.mesh.niceErode();
+    this.map.mesh.findSeaLevel();
+    this.map.mesh.smoothCoast(3);
+    this.map.mesh.findCoastline();
+
     this.drawMap();
   }
 
@@ -112,9 +131,9 @@ class Creator extends Component {
 
     let mapButtons = null;
 
-    if (this.state.map && this.state.map.mesh) {
+    if (this.map && this.map.mesh) {
       mapButtons = (
-        <ChunkyButton onClick={this.erode} disabled={this.state.loading}>
+        <ChunkyButton onClick={this.erodeClick} disabled={this.state.loading}>
           Erode
         </ChunkyButton>
       );
@@ -131,7 +150,7 @@ class Creator extends Component {
         </div>
 
         <div className="toolbar">
-          <ChunkyButton onClick={this.click} disabled={this.state.loading}>
+          <ChunkyButton onClick={this.generateClick} disabled={this.state.loading}>
             Generate
           </ChunkyButton>
 

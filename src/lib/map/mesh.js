@@ -1,7 +1,7 @@
 import {
   voronoi as Voronoi,
   scaleLinear,
-  median,
+  quantile,
   mean
 } from 'd3';
 
@@ -239,7 +239,13 @@ class Mesh {
   }
 
   findSeaLevel() {
-    this.seaLevel = median(this.points.map(p => p.height));
+    const sortedHeights = this.points
+      .map(p => p.height)
+      .sort((a, b) => {
+        return a - b;
+      });
+
+    this.seaLevel = quantile(sortedHeights, 0.35);
   }
 
   findCoastline() {
@@ -289,9 +295,9 @@ class Mesh {
     const widthInPoints = Math.sqrt(this.points.length);
     const pointWidth = 1 / widthInPoints;
 
-    const numBumps = Math.ceil(Math.sqrt(this.points.length / 2));
+    const numBumps = Math.ceil(Math.sqrt(this.points.length));
 
-    this.addBumps(numBumps, 1, pointWidth * 10)
+    this.addBumps(numBumps, randInRange(1, 3), pointWidth * 15)
   }
 
   addBumps(n, height, radius) {
@@ -349,11 +355,12 @@ class Mesh {
   }
 
   niceErode() {
-    const iterations = 1;
+    const iterations = 5;
 
     for (let i = 0; i < iterations; i++) {
       this.fillSinks();
-      this.erode(randInRange(2, 10));
+      // this.erode(randInRange(4, 7));
+      this.erode(20);
     }
 
     this.fillSinks();
@@ -366,6 +373,16 @@ class Mesh {
   // the Planchon-Darboux algorithm (????)
   fillSinks() {
     planchonDarboux(this.points);
+  }
+
+  downhillLines() {
+    return this.points.map((point) => {
+      if (!point.downhill) {
+        return null;
+      }
+
+      return [point, point.downhill];
+    }).filter(l => !!l);
   }
 }
 

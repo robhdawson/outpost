@@ -111,8 +111,8 @@ export function drawMesh(mesh, c) {
   const maxH = max(heights);
 
   const colorScale = scaleLinear()
-    .domain([minH, mesh.seaLevel, maxH])
-    .range(['#04023f', '#a0936a', '#fdfff4']);
+    .domain([minH, mesh.seaLevel - 0.05, mesh.seaLevel + 0.05, maxH])
+    .range(['#04023f', '#6e6d9e', '#969e71', '#fdfff4']);
 
   const colorForTriangle = (shape) => {
     return colorScale(shape.center.height);
@@ -125,6 +125,8 @@ export function drawMesh(mesh, c) {
   );
 
   drawLines(mesh.coastline, { color: '#111', lineWidth: 2 }, canvas);
+
+  // drawLines(mesh.downhillLines(), { color: '#e11', lineWidth: 1 }, canvas);
 
   // drawLines(mesh.triangleEdges(), {color: '#111'}, canvas);
 

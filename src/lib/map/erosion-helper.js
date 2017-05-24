@@ -99,12 +99,12 @@ function getErosionRates(points, slopes) {
   return points.map((point, i) => {
     const slope = slopes[i];
 
-    const river = Math.sqrt(point.flux) * slope;
+    const river = Math.sqrt(point.flux) * slope * 2;
     const creep = Math.pow(slope, 2);
 
     const total = max([
       1000 * river * creep,
-      1000,
+      // 1000,
     ]);
 
     return total;
@@ -122,7 +122,7 @@ function setFluxes(points, seaLevel) {
   indexes.forEach((i) => {
     const point = points[i];
 
-    if (point.downhill && point.downhill.height >= seaLevel) {
+    if (point.downhill) {
       point.downhill.flux += point.flux;
     }
   });
