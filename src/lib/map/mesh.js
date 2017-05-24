@@ -12,6 +12,7 @@ import {
 } from './points';
 
 import { randInRange } from './random';
+import { planchonDarboux } from './erosion-helper';
 
 export const vertexToString = (v) => `${v[0]}|${v[1]}`;
 
@@ -30,6 +31,8 @@ class Mesh {
     this.addRandomBumps();
 
     this.relaxHeights(2);
+
+    this.niceErode();
 
     this.findSeaLevel();
 
@@ -341,6 +344,15 @@ class Mesh {
         }
       }
     });
+  }
+
+  niceErode() {
+    this.fillSinks();
+  }
+
+  // the Planchon-Darboux algorithm (????)
+  fillSinks() {
+    planchonDarboux(this.points);
   }
 }
 
