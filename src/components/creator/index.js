@@ -108,13 +108,15 @@ class Creator extends Component {
       return;
     }
 
-    this.map.mesh.findSeaLevel();
-    this.map.mesh.niceErode();
-    this.map.mesh.findSeaLevel();
-    this.map.mesh.smoothCoast(3);
-    this.map.mesh.findCoastline();
+    window.setTimeout(() => {
+      this.map.mesh.findSeaLevel();
+      this.map.mesh.niceErode();
+      this.map.mesh.findSeaLevel();
+      this.map.mesh.smoothCoast(3);
+      this.map.mesh.findCoastline();
 
-    this.drawMap();
+      this.drawMap();
+    }, 0);
   }
 
   render() {
