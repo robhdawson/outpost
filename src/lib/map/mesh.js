@@ -29,9 +29,18 @@ class Mesh {
     this.addRandomCone();
     this.addRandomBumps();
 
-    this.relaxHeights();
+    this.relaxHeights(2);
 
-    this.addSensibleCoast();
+    this.findSeaLevel();
+
+
+    // this depends on sea level
+    this.smoothCoast(3);
+
+
+    // This has to be last, so it comes after
+    // all height adjustments
+    this.findCoastline();
   }
 
   triangleEdges() {
@@ -224,12 +233,11 @@ class Mesh {
     });
   }
 
-  addSensibleCoast() {
-    const heights = this.points.map(p => p.height);
-    this.addCoast(median(heights));
+  findSeaLevel() {
+    this.seaLevel = median(this.points.map(p => p.height));
   }
 
-  addCoast(seaLevel) {
+  findCoastline() {
     const coastline = [];
 
     this.edges.forEach((edge) => {
@@ -241,14 +249,13 @@ class Mesh {
       const two = edge.corner1;
 
       if (
-        (one.height > seaLevel && two.height <= seaLevel) ||
-        (one.height <= seaLevel && two.height > seaLevel)
+        (one.height > this.seaLevel && two.height <= this.seaLevel) ||
+        (one.height <= this.seaLevel && two.height > this.seaLevel)
       ) {
         coastline.push([edge.center0, edge.center1]);
       }
     });
 
-    this.seaLevel = seaLevel;
     this.coastline = coastline;
   }
 
@@ -298,9 +305,41 @@ class Mesh {
     });
   }
 
-  relaxHeights() {
+  relaxHeights(iterations = 1) {
+    for (let i = 0; i < iterations; i++) {
+      this.points.forEach((point) => {
+        point.height = mean(point.neighbors.map(p => p.height));
+      });
+    }
+  }
+
+  smoothCoast(iterations = 1) {
+    for (let i = 0; i < iterations; i++) {
+      this.smoothCoastOnce();
+    }
+  }
+
+  smoothCoastOnce() {
     this.points.forEach((point) => {
-      point.height = mean(point.neighbors.map(p => p.height));
+
+      const neighborHeights = point.neighbors.map(p => p.height);
+
+      if (point.height > this.seaLevel) {
+        // if it's above sea level, but most of the neighbors are below,
+        // move it up.
+        const downNeighbs = neighborHeights.filter(h => h <= this.seaLevel);
+
+        if (downNeighbs.length >= point.neighbors.length / 2) {
+          point.height = mean(downNeighbs);
+        }
+      } else if  (point.height <= this.seaLevel) {
+        // vice-versa
+        const upNeighbs = neighborHeights.filter(h => h > this.seaLevel);
+
+        if (upNeighbs.length >= point.neighbors.length / 2) {
+          point.height = mean(upNeighbs);
+        }
+      }
     });
   }
 }
