@@ -131,7 +131,7 @@ export function drawMesh(mesh, c) {
   );
 
   if (mesh.coastline) {
-    drawLines(mesh.coastline, { color: '#4f4c3a', lineWidth: 2 }, canvas);
+    drawLines(mesh.coastline, { color: '#6d6951', lineWidth: 2 }, canvas);
   }
 
   // drawLines(mesh.downhillLines(), { color: '#e11', lineWidth: 1 }, canvas);

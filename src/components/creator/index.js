@@ -119,7 +119,8 @@ class Creator extends Component {
     window.setTimeout(() => {
       this.map.mesh.findSeaLevel();
       this.map.mesh.niceErode(3);
-      this.map.mesh.smoothCoast(2);
+      // this.map.mesh.relaxHeights(3);
+      this.map.mesh.smoothCoast(1);
       this.map.mesh.findCoastline();
 
       this.drawMap();

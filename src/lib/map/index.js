@@ -82,7 +82,9 @@ class Map {
                         cb();
 
                         defer(() => {
-                          this.mesh.smoothCoast(2);
+                          // this.mesh.relaxHeights(3);
+                          this.mesh.findCoastline();
+                          this.mesh.smoothCoast(1);
                           this.mesh.findCoastline();
 
                           cb();

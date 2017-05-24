@@ -374,11 +374,11 @@ class Mesh {
     const minErode = span / 4;
 
     for (let i = 0; i < iterations; i++) {
-      this.fillSinks();
       this.erode(randInRange(minErode, maxErode));
+      this.fillSinks();
     }
 
-    this.fillSinks();
+    // this.fillSinks();
   }
 
   erode(amount) {
