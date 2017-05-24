@@ -222,6 +222,7 @@ class Mesh {
       edges,
       polygonCenters,
       points: corners,
+      seaLevel: 0.01,
     });
   }
 
@@ -247,7 +248,13 @@ class Mesh {
         return a - b;
       });
 
-    this.seaLevel = quantile(sortedHeights, 0.35);
+    const q = 0.35;
+    this.seaLevel = quantile(sortedHeights, q);
+
+    // for rendering
+    const justQuantileDiff = 0.1;
+    this.justBelowSeaLevel = quantile(sortedHeights, q - justQuantileDiff);
+    this.justAboveSeaLevel = quantile(sortedHeights, q + justQuantileDiff);
   }
 
   findCoastline() {
@@ -293,11 +300,15 @@ class Mesh {
     });
   }
 
-  addRandomBumps() {
+  goodBumpAmount() {
+    return Math.ceil(Math.sqrt(this.points.length));
+  }
+
+  addRandomBumps(amount) {
     const widthInPoints = Math.sqrt(this.points.length);
     const pointWidth = 1 / widthInPoints;
 
-    const numBumps = Math.ceil(Math.sqrt(this.points.length));
+    const numBumps = amount || this.goodBumpAmount();
 
     this.addBumps(numBumps, randInRange(1, 3), pointWidth * 15)
   }
@@ -359,8 +370,8 @@ class Mesh {
   niceErode(iterations = 5) {
     const heights = this.points.map(p => p.height);
     const span = max(heights) - min(heights)
-    const maxErode = span / 8;
-    const minErode = span / 10;
+    const maxErode = span / 2;
+    const minErode = span / 4;
 
     for (let i = 0; i < iterations; i++) {
       this.fillSinks();
@@ -387,6 +398,17 @@ class Mesh {
 
       return [point, point.downhill];
     }).filter(l => !!l);
+  }
+
+  isFlat() {
+    let h = this.points[0].height;
+    for(let i = 1; i < this.points.length; i++) {
+      if (this.points[i].height !== h) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }
 

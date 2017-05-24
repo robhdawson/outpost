@@ -107,15 +107,21 @@ export function drawMesh(mesh, c) {
 
   // draw heightmap
   const heights = mesh.points.map(p => p.height);
-  const minH = min(heights);
-  const maxH = max(heights);
+  let minH = min(heights);
+  let maxH = max(heights);
 
-  const colorScale = scaleLinear()
-    .domain([minH, mesh.seaLevel - 0.04, mesh.seaLevel + 0.04, maxH])
-    .range(['#04023f', '#6e6d9e', '#969e71', '#fdfff4']);
+  let colorForTriangle;
 
-  const colorForTriangle = (shape) => {
-    return colorScale(shape.center.height);
+  if (mesh.isFlat()) {
+    colorForTriangle = () => '#6e6d9e';
+  } else {
+    const colorScale = scaleLinear()
+      .domain([minH, mesh.justBelowSeaLevel, mesh.justAboveSeaLevel, maxH])
+      .range(['#04023f', '#6e6d9e', '#969e71', '#fdfff4']);
+
+    colorForTriangle = (shape) => {
+      return colorScale(shape.center.height);
+    };
   };
 
   fillShapes(
@@ -124,7 +130,9 @@ export function drawMesh(mesh, c) {
     canvas
   );
 
-  // drawLines(mesh.coastline, { color: '#111', lineWidth: 2 }, canvas);
+  if (mesh.coastline) {
+    drawLines(mesh.coastline, { color: '#726951', lineWidth: 2 }, canvas);
+  }
 
   // drawLines(mesh.downhillLines(), { color: '#e11', lineWidth: 1 }, canvas);
 

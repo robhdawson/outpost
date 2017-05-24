@@ -28,6 +28,7 @@ class Creator extends Component {
     this.erode = this.erode.bind(this);
 
     this.renderImage = this.renderImage.bind(this);
+    this.stopLoading = this.stopLoading.bind(this);
 
     window.creator = this;
   }
@@ -85,7 +86,8 @@ class Creator extends Component {
     this.map.numberOfPoints = (Math.floor(Math.random() * 11) + 6) * 500;
     // this.map.numberOfPoints = 500;
 
-    this.map.generate().then(this.renderImage);
+    // this.map.generate().then(this.renderImage);
+    this.map.generateAndRenderSteps(this.renderImage, this.stopLoading);
   }
 
   drawMap() {
@@ -93,12 +95,17 @@ class Creator extends Component {
       return;
     }
 
-    this.map.draw().then(this.renderImage);
+    this.map.draw().then(this.renderImage).then(this.stopLoading);
   }
 
   renderImage(image) {
     this.setState({
       image: image,
+    });
+  }
+
+  stopLoading() {
+    this.setState({
       loading: false,
     });
   }
