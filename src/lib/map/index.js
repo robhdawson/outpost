@@ -23,6 +23,16 @@ class Map {
       }, 0);
     });
   }
+
+  draw() {
+    return new Promise((resolve, reject) => {
+      window.setTimeout(() => {
+        const canvas = drawMesh(this.mesh);
+        const image = canvas.toDataURL();
+        resolve(image);
+      }, 0);
+    });
+  }
 }
 
 export default Map;

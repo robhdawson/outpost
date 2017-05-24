@@ -17,16 +17,23 @@ class Creator extends Component {
       displayHeight: 0,
       image: null,
       loading: false,
+      map: null,
     };
 
     this.updateDisplaySize = this.updateDisplaySize.bind(this);
     this.click = this.click.bind(this);
     this.generate = this.generate.bind(this);
+    this.renderImage = this.renderImage.bind(this);
+    this.erode = this.erode.bind(this);
+
+    window.creator = this;
   }
 
   componentDidMount() {
     // this.props.hideHeader();
-    this.map = new Map();
+    this.setState({
+      map: new Map(),
+    });
     this.updateDisplaySize();
     window.addEventListener('resize', this.updateDisplaySize);
   }
@@ -57,15 +64,38 @@ class Creator extends Component {
   }
 
   generate() {
-    this.map.numberOfPoints = (Math.floor(Math.random() * 11) + 6) * 500;
-    // this.map.numberOfPoints = 200;
+    if (!this.state.map) {
+      return;
+    }
 
-    this.map.generate().then(image => {
-      this.setState({
-        image: image,
-        loading: false,
-      });
+    this.state.map.numberOfPoints = (Math.floor(Math.random() * 11) + 6) * 500;
+    this.state.map.numberOfPoints = 2000;
+
+    this.state.map.generate().then(this.renderImage);
+  }
+
+  drawMap() {
+    if (!this.state.map) {
+      return;
+    }
+
+    this.state.map.draw().then(this.renderImage);
+  }
+
+  renderImage(image) {
+    this.setState({
+      image: image,
+      loading: false,
     });
+  }
+
+  erode() {
+    if (!this.state.map) {
+      return;
+    }
+
+    this.state.map.mesh.niceErode();
+    this.drawMap();
   }
 
   render() {
@@ -77,6 +107,16 @@ class Creator extends Component {
           title="Outpost map"
           alt="A map of your outpost"
         />
+      );
+    }
+
+    let mapButtons = null;
+
+    if (this.state.map && this.state.map.mesh) {
+      mapButtons = (
+        <ChunkyButton onClick={this.erode} disabled={this.state.loading}>
+          Erode
+        </ChunkyButton>
       );
     }
 
@@ -94,6 +134,8 @@ class Creator extends Component {
           <ChunkyButton onClick={this.click} disabled={this.state.loading}>
             Generate
           </ChunkyButton>
+
+          {mapButtons}
         </div>
       </div>
     );
