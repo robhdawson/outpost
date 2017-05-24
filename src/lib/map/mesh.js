@@ -11,7 +11,7 @@ import {
   distance
 } from './points';
 
-import { rnorm } from './random';
+import { randInRange } from './random';
 
 export const vertexToString = (v) => `${v[0]}|${v[1]}`;
 
@@ -26,6 +26,7 @@ class Mesh {
 
   makeIntoCoast() {
     this.addRandomSlope();
+    this.addRandomCone();
     this.addRandomBumps();
 
     this.relaxHeights();
@@ -212,8 +213,8 @@ class Mesh {
     const s = 4;
 
     this.addSlope({
-      x: rnorm() * s,
-      y: rnorm() * s,
+      x: randInRange(-1, 1) * s,
+      y: randInRange(-1, 1) * s,
     });
   }
 
@@ -251,6 +252,27 @@ class Mesh {
     this.coastline = coastline;
   }
 
+  addRandomCone() {
+    const peak = randInRange(-1.5, 1.5);
+
+    this.addCone(peak);
+  }
+
+  addCone(peak) {
+    const half = 0.5;
+
+    const center = {
+      x: half,
+      y: half,
+    };
+
+    const scale = scaleLinear().domain([0, half]).range([peak, 0]);
+
+    this.points.forEach((point) => {
+      point.height += scale(distance(point, center));
+    });
+  }
+
   addRandomBumps() {
     const widthInPoints = Math.sqrt(this.points.length);
     const pointWidth = 1 / widthInPoints;
@@ -261,7 +283,6 @@ class Mesh {
   }
 
   addBumps(n, height, radius) {
-    console.log('addBumps', arguments);
     const bumpCenters = randomPoints(n);
 
     const scale = scaleLinear().domain([0, radius]).range([height, 0]);
