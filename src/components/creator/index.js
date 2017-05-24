@@ -134,7 +134,7 @@ class Creator extends Component {
     if (this.map && this.map.mesh) {
       mapButtons = (
         <ChunkyButton onClick={this.erodeClick} disabled={this.state.loading}>
-          Erode
+          Erode (kinda) (it is broken)
         </ChunkyButton>
       );
     }
