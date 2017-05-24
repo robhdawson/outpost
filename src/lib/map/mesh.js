@@ -353,7 +353,7 @@ class Mesh {
         // move it down.
         const downNeighbs = neighborHeights.filter(h => h <= this.seaLevel);
 
-        if (downNeighbs.length >= point.neighbors.length) {
+        if (downNeighbs.length >= point.neighbors.length / 2) {
           point.height = mean(downNeighbs);
         }
       } else if  (point.height <= this.seaLevel) {

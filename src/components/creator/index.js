@@ -6,6 +6,7 @@ import { headerVisibilityChange } from 'store/actions';
 import ChunkyButton from 'components/chunky-button';
 
 import Map from 'lib/map';
+import { randInRange } from 'lib/map/random';
 
 import './styles.scss';
 
@@ -83,7 +84,7 @@ class Creator extends Component {
       return;
     }
 
-    this.map.numberOfPoints = (Math.floor(Math.random() * 11) + 6) * 500;
+    this.map.numberOfPoints = randInRange(7000, 8000);
     // this.map.numberOfPoints = 500;
 
     // this.map.generate().then(this.renderImage);
@@ -117,7 +118,8 @@ class Creator extends Component {
 
     window.setTimeout(() => {
       this.map.mesh.findSeaLevel();
-      this.map.mesh.niceErode();
+      this.map.mesh.niceErode(3);
+      this.map.mesh.smoothCoast(2);
       this.map.mesh.findCoastline();
 
       this.drawMap();
