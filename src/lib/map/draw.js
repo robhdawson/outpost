@@ -134,6 +134,10 @@ export function drawMesh(mesh, c) {
     drawLines(mesh.coastline, { color: '#6d6951', lineWidth: 2 }, canvas);
   }
 
+  if (mesh.rivers) {
+    drawLines(mesh.rivers, { color: '#04023f', lineWidth: 3 }, canvas);
+  }
+
   // drawLines(mesh.downhillLines(), { color: '#e11', lineWidth: 1 }, canvas);
 
   // const fluxes = mesh.points.map(p => p.flux);

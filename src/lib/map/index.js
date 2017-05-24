@@ -89,7 +89,12 @@ class Map {
 
                           cb();
 
-                          finalCallback();
+                          defer(() => {
+                            this.mesh.findRivers();
+                            cb();
+
+                            finalCallback();
+                          });
                         });
                       });
                     });

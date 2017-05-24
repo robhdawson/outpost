@@ -76,8 +76,6 @@ export function erode(points, seaLevel, amount) {
     .domain([min(erosionRates), max(erosionRates)])
     .range([0, amount]);
 
-  window.erosionScale = erosionScale;
-
   points.forEach((point, i) => {
     const er = erosionRates[i];
     point.height = point.height - erosionScale(er);
@@ -95,7 +93,7 @@ export function erode(points, seaLevel, amount) {
   // setDownhills(points);
 }
 
-function setDownhills(points) {
+export function setDownhills(points) {
   points.forEach((point) => {
     const isEdge = point.isTriangle && point.neighbors.length < 3;
     if (isEdge) {
@@ -120,23 +118,10 @@ function setDownhills(points) {
 function getErosionRates(points, slopes) {
   return points.map((point, i) => {
     return point.flux * point.flux * point.flux;
-
-
-    // const slope = slopes[i];
-
-    const river = Math.sqrt(point.flux);
-    // const creep = Math.pow(slope, 2);x
-
-    const total = max([
-      1000 * river,
-      // 1000,
-    ]);
-
-    return total;
   });
 }
 
-function setFluxes(points, seaLevel) {
+export function setFluxes(points, seaLevel) {
   points.forEach((point) => {
     point.flux = 1;
   });
@@ -152,39 +137,39 @@ function setFluxes(points, seaLevel) {
   });
 }
 
-function getSlopes(points) {
-  return points.map((point) => {
-    return getSlope(point);
-  });
-}
+// function getSlopes(points) {
+//   return points.map((point) => {
+//     return getSlope(point);
+//   });
+// }
 
-function getSlope(point) {
-  const discount = !point.isTriangle || point.neighbors.length < 3;
-  if (discount) {
-    return 0;
-  }
+// function getSlope(point) {
+//   const discount = !point.isTriangle || point.neighbors.length < 3;
+//   if (discount) {
+//     return 0;
+//   }
 
-  const p0 = point.neighbors[0];
-  const p1 = point.neighbors[1];
-  const p2 = point.neighbors[2];
+//   const p0 = point.neighbors[0];
+//   const p1 = point.neighbors[1];
+//   const p2 = point.neighbors[2];
 
-  const x1 = p1.x - p0.x;
-  const x2 = p2.x - p0.x;
-  const y1 = p1.y - p0.y;
-  const y2 = p2.y - p0.y;
+//   const x1 = p1.x - p0.x;
+//   const x2 = p2.x - p0.x;
+//   const y1 = p1.y - p0.y;
+//   const y2 = p2.y - p0.y;
 
-  const det = x1 * y2 - x2 * y1;
+//   const det = x1 * y2 - x2 * y1;
 
-  const h1 = p1.height - p0.height;
-  const h2 = p2.height - p0.height;
+//   const h1 = p1.height - p0.height;
+//   const h2 = p2.height - p0.height;
 
-  const trislope = [
-    ((y2 * h1) - (y1 * h2)) / det,
-    ((x1 * h2) - (x2 * h1)) / det,
-  ];
+//   const trislope = [
+//     ((y2 * h1) - (y1 * h2)) / det,
+//     ((x1 * h2) - (x2 * h1)) / det,
+//   ];
 
-  return Math.sqrt((trislope[0] * trislope[0]) + (trislope[1] * trislope[1]));
-}
+//   return Math.sqrt((trislope[0] * trislope[0]) + (trislope[1] * trislope[1]));
+// }
 
 
 

@@ -14,7 +14,7 @@ import {
 } from './points';
 
 import { randInRange } from './random';
-import { erode, planchonDarboux } from './erosion-helper';
+import { erode, planchonDarboux, setDownhills, setFluxes } from './erosion-helper';
 
 export const vertexToString = (v) => `${v[0]}|${v[1]}`;
 
@@ -48,6 +48,8 @@ class Mesh {
     // This has to be last, so it comes after
     // all height adjustments
     this.findCoastline();
+
+    this.findRivers();
   }
 
   triangleEdges() {
@@ -409,6 +411,39 @@ class Mesh {
     }
 
     return true;
+  }
+
+  findRivers(n = 0.01) {
+    setDownhills(this.points);
+    setFluxes(this.points, this.seaLevel);
+
+    const above = this.points
+      .filter(p => p.height > this.seaLevel)
+      .sort((a, b) => b.flux - a.flux);
+
+    const limit = quantile(above.map(a => a.flux), 0.05);
+    // const limit = n * (above.length / this.points.length);
+
+    const links = [];
+
+    console.log('limit', limit);
+    console.log('flux', above.map(a => a.flux));
+    this.points.forEach((point) => {
+      if (
+        point.neighbors < 3 ||
+        !point.isTriangle ||
+        point.flux <= limit ||
+        point.height <= this.seaLevel ||
+        !point.downhill ||
+        point.downhill.height < this.seaLevel
+      ) {
+        return;
+      }
+
+      links.push([point, point.downhill]);
+    });
+
+    this.rivers = links;
   }
 }
 

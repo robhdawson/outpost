@@ -85,7 +85,7 @@ class Creator extends Component {
     }
 
     this.map.numberOfPoints = randInRange(7000, 8000);
-    // this.map.numberOfPoints = 500;
+    this.map.numberOfPoints = 3000;
 
     // this.map.generate().then(this.renderImage);
     this.map.generateAndRenderSteps(this.renderImage, this.stopLoading);

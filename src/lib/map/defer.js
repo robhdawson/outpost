@@ -1,8 +1,3 @@
 export function defer(func) {
-  return new Promise((resolve, reject) => {
-    window.setTimeout(() => {
-      func();
-      resolve();
-    }, 100);
-  });
-}
+  return window.setTimeout(func, 0);
+};
