@@ -7,7 +7,7 @@ const infinity = 9999999;
 // but only their height property
 export function planchonDarboux(points) {
   points.forEach((point) => {
-    const isEdge = point.isTriangle && point.neighbors.length < 3;
+    const isEdge = point.neighbors.length < 3;
 
     point.newHeight = isEdge ? point.height : infinity;
   });
@@ -119,9 +119,13 @@ export function setFluxes(points, seaLevel) {
     point.flux = 1 / points.length;
   });
 
-  const pointsByHeight = points.slice(0).sort((a, b) => {
+  const pointsByHeight = points.slice(0);
+
+  pointsByHeight.sort((a, b) => {
     return b.height - a.height;
   });
+
+  window.pointsByHeight = pointsByHeight;
 
   pointsByHeight.forEach((point) => {
     if (point.downhill) {

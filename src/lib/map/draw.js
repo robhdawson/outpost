@@ -29,30 +29,30 @@ function translateArray(point) {
   });
 }
 
-// function drawCircle(ctx, center, r, color = '#333') {
-//   ctx.beginPath();
-//   ctx.arc(
-//     center.x,
-//     center.y,
-//     r,
-//     0,
-//     Math.PI * 2
-//   );
-//   ctx.fillStyle = color;
-//   ctx.fill();
-//   ctx.closePath();
-// }
+function drawCircle(ctx, center, r, color = '#333') {
+  ctx.beginPath();
+  ctx.arc(
+    center.x,
+    center.y,
+    r,
+    0,
+    Math.PI * 2
+  );
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.closePath();
+}
 
-// function drawPoints(points = [], { color = '#333', r = 2 }, c) {
-//   const canvas = c || getCanvas();
-//   const ctx = canvas.getContext('2d');
+function drawPoints(points = [], { color = '#333', r = 2 }, c) {
+  const canvas = c || getCanvas();
+  const ctx = canvas.getContext('2d');
 
-//   points.forEach((point) => {
-//     drawCircle(ctx, translate(point), r, color);
-//   });
+  points.forEach((point) => {
+    drawCircle(ctx, translate(point), r, color);
+  });
 
-//   return canvas;
-// }
+  return canvas;
+}
 
 function drawLines(lines, { color = '#333', lineWidth = 2 }, c) {
   const canvas = c || getCanvas();
@@ -113,10 +113,38 @@ function fillShapes(shapes, colorCallback, c) {
 export function drawMesh(mesh, c) {
   const canvas = c || getCanvas();
 
+  // draw fluxmap
+
+  // if (mesh.points[0].flux) {
+  //   const fluxes = mesh.points.map(p => p.flux);
+  //   const minF = min(fluxes);
+  //   const maxF = max(fluxes);
+
+  //   const colorScale = scaleLinear()
+  //     .domain([minF, maxF])
+  //     .range(['#eee', '#e11']);
+
+  //   console.log(minF, maxF);
+
+  //   const colorForTriangle = (shape) => {
+  //     if (shape.center.height < mesh.seaLevel) {
+  //       return '#444';
+  //     } else {
+  //       return colorScale(shape.center.flux);
+  //     }
+  //   }
+  //   fillShapes(
+  //     mesh.triangles(),
+  //     colorForTriangle,
+  //     canvas
+  //   );
+  // }
+
   // draw heightmap
+
   const heights = mesh.points.map(p => p.height);
-  let minH = min(heights);
-  let maxH = max(heights);
+  const minH = min(heights);
+  const maxH = max(heights);
 
   let colorForTriangle;
 
@@ -143,9 +171,10 @@ export function drawMesh(mesh, c) {
   }
 
   if (mesh.rivers) {
-    drawLines(mesh.rivers, { color: '#43408c', lineWidth: 2 }, canvas);
+    // drawLines(mesh.downhillLines(), { color: '#1d1', lineWidth: 1 }, canvas);
+    // drawPoints(mesh.points.filter(p => !p.downhill), { color: '#1d1', r: 5}, canvas);
+    drawLines(mesh.rivers, { color: '#6d6b91', lineWidth: 2 }, canvas);
     // drawLines(mesh.rivers, { color: '#1e1', lineWidth: 6 }, canvas);
-    // drawLines(mesh.downhillLines(), { color: '#d11', lineWidth: 1 }, canvas);
   }
 
   // drawLines(mesh.downhillLines(), { color: '#d11', lineWidth: 1 }, canvas);

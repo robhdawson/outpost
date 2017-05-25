@@ -215,9 +215,9 @@ class Mesh {
     });
 
     // Now we tell corners that their neighbors are the
-    // adjacent corners that are ALSO full triangles.
+    // adjacent corners
     corners.forEach((corner) => {
-      corner.neighbors = corner.adjacent.filter(a => a.isTriangle);
+      corner.neighbors = corner.adjacent;
     });
 
 
@@ -414,7 +414,15 @@ class Mesh {
     return true;
   }
 
-  findRivers(n = 0.005) {
+  setDownhills() {
+    setDownhills(this.points);
+  }
+
+  setFluxes() {
+    setFluxes(this.points);
+  }
+
+  findRivers(n = 0.01) {
     setDownhills(this.points);
     setFluxes(this.points, this.seaLevel);
 
@@ -437,7 +445,10 @@ class Mesh {
         return;
       }
 
-      if (point.downhill.height > this.seaLevel) {
+      if (
+        point.downhill.height > this.seaLevel &&
+        point.downhill.isTriangle
+      ) {
         links.push({
           up: point,
           down: point.downhill,
