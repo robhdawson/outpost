@@ -77,25 +77,18 @@ export function erode(points, seaLevel, amount) {
     .range([0, amount]);
 
   points.forEach((point, i) => {
+    if (point.height < seaLevel) {
+      return;
+    }
+
     const er = erosionRates[i];
     point.height = point.height - erosionScale(er);
   });
-  return;
-
-
-  // const maxErosionRate = max(erosionRates);
-
-  // points.forEach((point, i) => {
-  //   const er = amount * (erosionRates[i] / maxErosionRate);
-  //   point.height = point.height - er;
-  // });
-
-  // setDownhills(points);
 }
 
 export function setDownhills(points) {
   points.forEach((point) => {
-    const isEdge = point.isTriangle && point.neighbors.length < 3;
+    const isEdge = point.neighbors.length < 3;
     if (isEdge) {
       point.downhill = null;
       return;
@@ -105,7 +98,7 @@ export function setDownhills(points) {
     let bestH = point.height;
 
     point.neighbors.forEach((neighbor) => {
-      if (neighbor.height < bestH) {
+      if (neighbor.height <= bestH) {
         best = neighbor;
         bestH = neighbor.height;
       }
@@ -123,7 +116,7 @@ function getErosionRates(points, slopes) {
 
 export function setFluxes(points, seaLevel) {
   points.forEach((point) => {
-    point.flux = 1;
+    point.flux = 1 / points.length;
   });
 
   const pointsByHeight = points.slice(0).sort((a, b) => {
@@ -131,7 +124,7 @@ export function setFluxes(points, seaLevel) {
   });
 
   pointsByHeight.forEach((point) => {
-    if (point.height >= seaLevel && point.downhill) {
+    if (point.downhill) {
       point.downhill.flux += point.flux;
     }
   });

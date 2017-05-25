@@ -123,6 +123,7 @@ class Mesh {
         touches: [],
         protrudes: [],
         adjacent: [],
+        id: cornerId0,
       };
 
       if (!cornersById[cornerId0]) {
@@ -137,6 +138,7 @@ class Mesh {
         touches: [],
         protrudes: [],
         adjacent: [],
+        id: cornerId1,
       };
 
       if (!cornersById[cornerId1]) {
@@ -229,11 +231,12 @@ class Mesh {
   }
 
   addRandomSlope() {
-    const s = 4;
+    const s = 10;
+    const polarity = Math.random() > 0.5 ? -1 : 1;
 
     this.addSlope({
-      x: randInRange(-1, 1) * s,
-      y: randInRange(-1, 1) * s,
+      x: randInRange(1, 2) * s * polarity,
+      y: randInRange(1, 2) * s * polarity,
     });
   }
 
@@ -282,7 +285,7 @@ class Mesh {
   }
 
   addRandomCone() {
-    const peak = randInRange(-1.5, 1.5);
+    const peak = randInRange(-4, 4);
 
     this.addCone(peak);
   }
@@ -312,7 +315,7 @@ class Mesh {
 
     const numBumps = amount || this.goodBumpAmount();
 
-    this.addBumps(numBumps, randInRange(1, 3), pointWidth * 15)
+    this.addBumps(numBumps, randInRange(1, 4), pointWidth * 10)
   }
 
   addBumps(n, height, radius) {
@@ -372,15 +375,13 @@ class Mesh {
   niceErode(iterations = 5) {
     const heights = this.points.map(p => p.height);
     const span = max(heights) - min(heights)
-    const maxErode = span / 2;
-    const minErode = span / 4;
+    const maxErode = span / 3;
+    const minErode = span / 5;
 
     for (let i = 0; i < iterations; i++) {
       this.erode(randInRange(minErode, maxErode));
       this.fillSinks();
     }
-
-    // this.fillSinks();
   }
 
   erode(amount) {
@@ -413,7 +414,7 @@ class Mesh {
     return true;
   }
 
-  findRivers(n = 0.01) {
+  findRivers(n = 0.005) {
     setDownhills(this.points);
     setFluxes(this.points, this.seaLevel);
 
@@ -421,29 +422,116 @@ class Mesh {
       .filter(p => p.height > this.seaLevel)
       .sort((a, b) => b.flux - a.flux);
 
-    const limit = quantile(above.map(a => a.flux), 0.05);
-    // const limit = n * (above.length / this.points.length);
+    const limit = n * (above.length / this.points.length);
 
     const links = [];
 
-    console.log('limit', limit);
-    console.log('flux', above.map(a => a.flux));
     this.points.forEach((point) => {
       if (
         point.neighbors < 3 ||
         !point.isTriangle ||
         point.flux <= limit ||
         point.height <= this.seaLevel ||
-        !point.downhill ||
-        point.downhill.height < this.seaLevel
+        !point.downhill
       ) {
         return;
       }
 
-      links.push([point, point.downhill]);
+      if (point.downhill.height > this.seaLevel) {
+        links.push({
+          up: point,
+          down: point.downhill,
+        });
+      } else {
+        links.push({
+          up: point,
+          down: {
+            x: (point.x + point.downhill.x) / 2,
+            y: (point.y + point.downhill.y) / 2,
+          },
+        });
+      }
     });
 
-    this.rivers = links;
+    // we have links - now merge them
+    const adjacents = {};
+    links.forEach((link) => {
+      adjacents[link.up.id] = adjacents[link.up.id] || [];
+      adjacents[link.down.id] = adjacents[link.down.id] || [];
+
+      adjacents[link.up.id].push(link.down);
+      adjacents[link.down.id].push(link.up);
+    });
+    this.adjacents = adjacents;
+    let currentPath = null;
+    const mergedPaths = [];
+
+    while (true) {
+      if (currentPath === null) {
+        for(let j = 0; j < links.length; j++) {
+          const link = links[j];
+          if (link.merged) {
+            continue;
+          }
+
+          link.merged = true;
+          currentPath = [link.up, link.down];
+          break;
+        };
+
+        if (currentPath === null) {
+          break;
+        }
+      }
+
+      let changed = false;
+      for (let k = 0; k < links.length; k++) {
+        const link = links[k];
+
+        if (link.merged) {
+          continue;
+        }
+
+        const pathStart = currentPath[0];
+        const pathEnd = currentPath[currentPath.length - 1];
+
+        if (
+          adjacents[pathStart.id].length === 2 &&
+          link.up === pathStart
+        ) {
+          currentPath.unshift(link.down);
+        } else if (
+          adjacents[pathStart.id].length === 2 &&
+          link.down === pathStart
+        ) {
+          currentPath.unshift(link.up);
+        } else if (
+          adjacents[pathEnd.id].length === 2 &&
+          link.up === pathEnd
+        ) {
+          currentPath.push(link.down);
+        } else if (
+          adjacents[pathEnd.id].length === 2 &&
+          link.down === pathEnd
+        ) {
+          currentPath.push(link.up);
+        } else {
+          // no dice
+          continue;
+        }
+
+        link.merged = true;
+        changed = true;
+        break;
+      }
+
+      if (!changed) {
+        mergedPaths.push(currentPath);
+        currentPath = null;
+      }
+    }
+
+    this.rivers = mergedPaths;
   }
 }
 

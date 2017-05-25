@@ -62,12 +62,20 @@ function drawLines(lines, { color = '#333', lineWidth = 2 }, c) {
   ctx.strokeStyle = color;
 
   lines.forEach((line) => {
+    if (line.length <= 1) {
+      return;
+    }
+
     const s = translate(line[0]);
-    const e = translate(line[1]);
 
     ctx.beginPath();
     ctx.moveTo(s.x, s.y);
-    ctx.lineTo(e.x, e.y);
+
+    line.slice(1).forEach((point) => {
+      const p = translate(point);
+      ctx.lineTo(p.x, p.y);
+    })
+
     ctx.stroke();
     ctx.closePath();
   });
@@ -135,10 +143,12 @@ export function drawMesh(mesh, c) {
   }
 
   if (mesh.rivers) {
-    drawLines(mesh.rivers, { color: '#04023f', lineWidth: 3 }, canvas);
+    drawLines(mesh.rivers, { color: '#43408c', lineWidth: 2 }, canvas);
+    // drawLines(mesh.rivers, { color: '#1e1', lineWidth: 6 }, canvas);
+    // drawLines(mesh.downhillLines(), { color: '#d11', lineWidth: 1 }, canvas);
   }
 
-  // drawLines(mesh.downhillLines(), { color: '#e11', lineWidth: 1 }, canvas);
+  // drawLines(mesh.downhillLines(), { color: '#d11', lineWidth: 1 }, canvas);
 
   // const fluxes = mesh.points.map(p => p.flux);
   // const fluxScale = scaleLinear()

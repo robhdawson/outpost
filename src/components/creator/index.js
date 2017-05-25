@@ -85,7 +85,7 @@ class Creator extends Component {
     }
 
     this.map.numberOfPoints = randInRange(7000, 8000);
-    this.map.numberOfPoints = 3000;
+    // this.map.numberOfPoints = 3000;
 
     // this.map.generate().then(this.renderImage);
     this.map.generateAndRenderSteps(this.renderImage, this.stopLoading);
@@ -141,13 +141,13 @@ class Creator extends Component {
 
     let mapButtons = null;
 
-    if (this.map && this.map.mesh) {
-      mapButtons = (
-        <ChunkyButton onClick={this.erodeClick} disabled={this.state.loading}>
-          Erode
-        </ChunkyButton>
-      );
-    }
+    // if (this.map && this.map.mesh) {
+    //   mapButtons = (
+    //     <ChunkyButton onClick={this.erodeClick} disabled={this.state.loading}>
+    //       Erode
+    //     </ChunkyButton>
+    //   );
+    // }
 
     return (
       <div className="creator">
@@ -161,7 +161,7 @@ class Creator extends Component {
 
         <div className="toolbar">
           <ChunkyButton onClick={this.generateClick} disabled={this.state.loading}>
-            Generate
+            New
           </ChunkyButton>
 
           {mapButtons}
