@@ -17,6 +17,7 @@ import { randInRange } from './random';
 import { planchonDarboux } from './erosion-helper';
 
 export const vertexToString = (v) => v.join(',');
+const SEA_LEVEL_QUANTILE = 0.5;
 
 class Mesh {
   constructor(numberOfPoints) {
@@ -213,18 +214,14 @@ class Mesh {
   }
 
   findSeaLevel() {
-    const sortedHeights = this.points
-      .map(p => p.height)
-      .sort((a, b) => {
-        return a - b;
-      });
+    const heights = this.points
+      .map(p => p.height);
 
-    const q = 0.35;
-    this.seaLevel = quantile(sortedHeights, q);
+    heights.sort((a, b) => {
+      return a - b;
+    });
 
-    // only used for rendering
-    this.justBelowSeaLevel = quantile(sortedHeights, q - 0.1);
-    this.justAboveSeaLevel = quantile(sortedHeights, q + 0.001);
+    this.seaLevel = quantile(heights, SEA_LEVEL_QUANTILE);
   }
 
   findCoastline() {
