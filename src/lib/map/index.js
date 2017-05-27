@@ -5,15 +5,16 @@ import { drawMesh } from './draw.js';
 const NUMBER_OF_POINTS = 2096;
 
 const GEN_STEPS = [
-  ['addRandomSlope'],
-  ['addRandomCone'],
-  ['addRandomBumps'],
-  ['relaxHeights'],
-  ['findSeaLevel'],
-  ['fillSinks', 'findCoastline'],
-  ['niceErode', 'findCoastline'],
-  ['smoothCoast', 'findCoastline'],
-  ['findRivers'],
+  'addRandomSlope',
+  'addRandomCone',
+  'addRandomBumps',
+  'relaxHeights',
+  'findSeaLevel',
+  'fillSinks',
+  'erode',
+  'smoothCoast',
+  'findCoastline',
+  'findRivers',
 ];
 
 class Map {
@@ -24,9 +25,7 @@ class Map {
   generate() {
     this.mesh = new Mesh(this.numberOfPoints);
 
-    GEN_STEPS.forEach((stepFuncs, i) => {
-      stepFuncs.forEach(funcName => this.mesh[funcName]());
-    });
+    GEN_STEPS.forEach(funcName => this.mesh[funcName]());
   }
 
   get image() {

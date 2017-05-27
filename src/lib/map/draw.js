@@ -88,6 +88,7 @@ function fillShapes(shapes, colorCallback, c) {
 
 export function drawMesh(mesh, c) {
   const canvas = c || getCanvas();
+  const ctx = canvas.getContext('2d');
 
   const heights = mesh.points.map(p => p.height);
   const minH = min(heights);
@@ -113,6 +114,9 @@ export function drawMesh(mesh, c) {
     canvas
   );
 
+  const border = mesh.edges.filter(e => e.isBorder).map(e => [e.corner0, e.corner1])
+  drawLines(border, { color: '#900', lineWidth: 5 }, canvas);
+
   if (mesh.coastline) {
     drawLines(mesh.coastline, { color: '#6d6951', lineWidth: 2 }, canvas);
   }
@@ -121,18 +125,21 @@ export function drawMesh(mesh, c) {
     drawLines(mesh.rivers, { color: '#6d6b91', lineWidth: 2 }, canvas);
   }
 
-  const borderLines = mesh.edges
-    .filter((edge) => {
-      return (
-        edge.hasCorners && !(
-          edge.point0.isTriangle &&
-          edge.point1.isTriangle
-        )
-      );
-    })
-    .map(e => [e.corner0, e.corner1]);
+  // Now crop it
+  const pointWidth = WIDTH / Math.sqrt(mesh.points.length);
+  const cropPadding = 2.2 * pointWidth;
 
-  drawLines(borderLines, { color: '#47442e', lineWidth: 3 }, canvas);
+  ctx.drawImage(
+    canvas,
+    cropPadding,
+    cropPadding,
+    WIDTH - (cropPadding * 2),
+    HEIGHT - (cropPadding * 2),
+    0,
+    0,
+    WIDTH,
+    HEIGHT
+  );
 
   return canvas;
 }

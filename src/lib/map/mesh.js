@@ -14,7 +14,7 @@ import {
 } from './points';
 
 import { randInRange } from './random';
-import { erode, planchonDarboux, setDownhills, setFluxes } from './erosion-helper';
+import { planchonDarboux } from './erosion-helper';
 
 export const vertexToString = (v) => v.join(',');
 
@@ -167,6 +167,26 @@ class Mesh {
       }
 
       edges.push(formattedEdge);
+    });
+
+    points.forEach((point) => {
+      if (
+        !point.isTriangle ||
+        point.neighbors.filter(p => p.isTriangle).length >= 3
+      ) {
+        return;
+      }
+
+      point.isBorder = true;
+    });
+
+    edges.forEach((edge) => {
+      if (
+        (edge.point0.isBorder && !edge.point1.isTriangle) ||
+        (edge.point1.isBorder && !edge.point0.isTriangle)
+      ) {
+        edge.isBorder = true;
+      }
     });
 
     Object.assign(this, {
@@ -327,22 +347,29 @@ class Mesh {
     });
   }
 
-  niceErode(iterations = 8) {
-    const heights = this.points.map(p => p.height);
-    const span = max(heights) - min(heights)
-    const maxErode = span;
-    const minErode = span / 2;
+  erode(iterations = 8) {
+    this.normalizeHeights();
+
+    this.setDownhills();
+    this.setFluxes();
+
+    const erosionRates = this.points.map((point) => {
+      return Math.pow(point.flux, 3);
+    });
+
+    const erosionScale = scaleLinear()
+      .domain([min(erosionRates), max(erosionRates)])
+      .range([0, 1]);
 
     for (let i = 0; i < iterations; i++) {
-      this.erode(randInRange(minErode, maxErode));
+      this.points.forEach((point, i) => {
+        point.height = point.height - erosionScale(erosionRates[i])
+      });
+
       this.fillSinks();
     }
 
     this.normalizeHeights();
-  }
-
-  erode(amount) {
-    erode(this.points, this.seaLevel, amount);
   }
 
   // the Planchon-Darboux algorithm (????)
@@ -372,11 +399,46 @@ class Mesh {
   }
 
   setDownhills() {
-    setDownhills(this.points);
+    this.points.forEach((point) => {
+      const isEdge = point.neighbors.length < 3;
+      if (isEdge) {
+        point.downhill = null;
+        return;
+      }
+
+      let best = null;
+      let bestH = point.height;
+
+      point.neighbors.forEach((neighbor) => {
+        if (neighbor.height <= bestH) {
+          best = neighbor;
+          bestH = neighbor.height;
+        }
+      });
+
+      point.downhill = best;
+    });
   }
 
   setFluxes() {
-    setFluxes(this.points, this.seaLevel);
+    this.points.forEach((point) => {
+      point.flux = 1 / this.points.length;
+    });
+
+    const pointsByHeight = this.points.slice(0);
+
+    pointsByHeight.sort((a, b) => {
+      return b.height - a.height;
+    });
+
+    pointsByHeight.forEach((point) => {
+      if (
+        point.downhill &&
+        point.downhill.height > this.seaLevel
+      ) {
+        point.downhill.flux += point.flux;
+      }
+    });
   }
 
   findRivers(n = 0.01) {

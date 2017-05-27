@@ -63,7 +63,7 @@ class Creator extends Component {
       return;
     }
 
-    this.map.numberOfPoints = 8192;
+    this.map.numberOfPoints = 10000;
 
     setTimeout(() => {
       this.map.generate();

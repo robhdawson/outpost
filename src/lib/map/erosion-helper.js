@@ -1,5 +1,3 @@
-import { min, max, scaleLinear } from 'd3';
-
 const epsilon = 0.00001;
 const infinity = 9999999;
 
@@ -7,7 +5,7 @@ const infinity = 9999999;
 // but only their height property
 export function planchonDarboux(points) {
   points.forEach((point) => {
-    const isEdge = point.neighbors.length < 3;
+    const isEdge = !point.isTriangle;
 
     point.newHeight = isEdge ? point.height : infinity;
   });
@@ -62,74 +60,5 @@ function recursivelyIterate(points) {
 }
 
 
-// also mutates heights
-export function erode(points, seaLevel, amount) {
-  setDownhills(points);
 
-  setFluxes(points, seaLevel);
 
-  // const slopes = getSlopes(points);
-  const slopes = [];
-
-  const erosionRates = getErosionRates(points, slopes);
-  const erosionScale = scaleLinear()
-    .domain([min(erosionRates), max(erosionRates)])
-    .range([0, amount]);
-
-  points.forEach((point, i) => {
-    if (point.height < seaLevel) {
-      return;
-    }
-
-    const er = erosionRates[i];
-    point.height = point.height - erosionScale(er);
-  });
-}
-
-export function setDownhills(points) {
-  points.forEach((point) => {
-    const isEdge = point.neighbors.length < 3;
-    if (isEdge) {
-      point.downhill = null;
-      return;
-    }
-
-    let best = null;
-    let bestH = point.height;
-
-    point.neighbors.forEach((neighbor) => {
-      if (neighbor.height <= bestH) {
-        best = neighbor;
-        bestH = neighbor.height;
-      }
-    });
-
-    point.downhill = best;
-  });
-}
-
-function getErosionRates(points, slopes) {
-  return points.map((point, i) => {
-    return point.flux * point.flux * point.flux;
-  });
-}
-
-export function setFluxes(points, seaLevel) {
-  points.forEach((point) => {
-    point.flux = 1 / points.length;
-  });
-
-  const pointsByHeight = points.slice(0);
-
-  pointsByHeight.sort((a, b) => {
-    return b.height - a.height;
-  });
-
-  window.pointsByHeight = pointsByHeight;
-
-  pointsByHeight.forEach((point) => {
-    if (point.downhill) {
-      point.downhill.flux += point.flux;
-    }
-  });
-}
