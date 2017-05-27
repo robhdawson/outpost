@@ -271,7 +271,7 @@ class Mesh {
   }
 
   goodBumpAmount() {
-    return Math.ceil(Math.sqrt(this.points.length));
+    return Math.ceil(Math.sqrt(this.points.length) * 2);
   }
 
   addRandomBumps(amount) {
@@ -280,7 +280,8 @@ class Mesh {
 
     const numBumps = amount || this.goodBumpAmount();
 
-    this.addBumps(numBumps, randInRange(1, 4), pointWidth * 10)
+    this.addBumps(Math.ceil(numBumps * 0.7), randInRange(4, 5), pointWidth * 10)
+    this.addBumps(Math.ceil(numBumps * 0.3), randInRange(6, 8), pointWidth * 14)
   }
 
   addBumps(n, height, radius) {
@@ -317,7 +318,7 @@ class Mesh {
     this.findSeaLevel();
   }
 
-  smoothCoast(iterations = 2) {
+  smoothCoast(iterations = 10) {
     for (let i = 0; i < iterations; i++) {
       this.smoothCoastOnce();
     }

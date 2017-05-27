@@ -101,7 +101,7 @@ export function drawMesh(mesh, c) {
   } else {
     const colorScale = scaleLinear()
       .domain([minH,      mesh.justBelowSeaLevel, mesh.seaLevel, mesh.justAboveSeaLevel, maxH])
-      .range( ['#04023f', '#646291',              '#7A7980',     '#938e6d',              '#fffff8']);
+      .range( ['#04023f', '#646291',              '#7A7980',     '#adab83',              '#fffff8']);
 
     colorForTriangle = (shape) => {
       return colorScale(shape.center.height);
