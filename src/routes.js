@@ -7,8 +7,8 @@ import Creator from 'components/creator';
 
 const routes = (
     <Route path="/" component={App}>
-        <IndexRoute component={Landing} />
-        <Route path="/creator" component={Creator} />
+        <IndexRoute component={Creator} />
+        <Route path="/what" component={Landing} />
     </Route>
 );
 

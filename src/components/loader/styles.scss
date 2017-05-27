@@ -1,0 +1,129 @@
+@import 'styles/global';
+
+$extent: 50%;
+
+@keyframes figure {
+  0% {
+    transform: translate(0, 0);
+  }
+
+  12.5% {
+    transform: translate($extent, -$extent/2)
+  }
+
+  25% {
+    transform: translate(0, -$extent);
+  }
+
+  37.5% {
+    transform: translate(-$extent, -$extent/2);
+  }
+
+  50% {
+    transform: translate(0, 0);
+  }
+
+  62.5% {
+    transform: translate($extent, $extent/2);
+  }
+
+  75% {
+    transform: translate(0, $extent);
+  }
+
+  87.5% {
+    transform: translate(-$extent, $extent/2);
+  }
+
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+$time: 7s;
+
+.loader-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: $white;
+  font-family: $sans-serif;
+  font-size: 20px;
+  letter-spacing: 5px;
+
+  .loader-container-inner {
+    border-radius: 50%;
+    padding: 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    position: relative;
+
+    .loader-units {
+      animation: spin ($time / 2) linear infinite;
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+
+      z-index: -1;
+
+      .one,
+      .two,
+      .three,
+      .four {
+        position: absolute;
+
+        width: 75%;
+        height: 75%;
+        border-radius: 50%;
+
+        top: 12.5%;
+        left: 12.5%;
+
+        background: rgba($gray, 0.7);
+        z-index: -1;
+
+        animation: figure $time linear infinite;
+      }
+
+      .one {
+        animation-delay: 0;
+      }
+
+      .two {
+        animation-delay: $time * -0.15;
+      }
+
+      .three {
+        animation-delay: $time * -0.3;
+      }
+
+      .four {
+        animation-delay: $time * -0.45;
+      }
+    }
+  }
+}

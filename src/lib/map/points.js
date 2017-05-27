@@ -1,5 +1,4 @@
 // All points generated between 0 and 1.
-
 import { voronoi as Voronoi } from 'd3-voronoi';
 
 export function randomPoints(amt) {

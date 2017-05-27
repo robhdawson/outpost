@@ -1,121 +1,37 @@
 import Mesh from './mesh';
 
 import { drawMesh } from './draw.js';
-import { defer } from './defer.js';
 
 const NUMBER_OF_POINTS = 2096;
+
+const GEN_STEPS = [
+  ['addRandomSlope'],
+  ['addRandomCone'],
+  ['addRandomBumps'],
+  ['relaxHeights'],
+  ['findSeaLevel'],
+  ['fillSinks', 'findCoastline'],
+  ['niceErode', 'findCoastline'],
+  ['smoothCoast', 'findCoastline'],
+  ['findRivers'],
+];
 
 class Map {
   constructor({ numberOfPoints } = {}) {
     this.numberOfPoints = numberOfPoints || NUMBER_OF_POINTS;
-    window.map = this;
   }
 
   generate() {
-    return new Promise((resolve, reject) => {
-      window.setTimeout(() => {
-        this.mesh = new Mesh(this.numberOfPoints);
-        this.mesh.makeIntoCoast();
+    this.mesh = new Mesh(this.numberOfPoints);
 
-        const canvas = drawMesh(this.mesh);
-
-        const image = canvas.toDataURL();
-        resolve(image);
-      }, 0);
+    GEN_STEPS.forEach((stepFuncs, i) => {
+      stepFuncs.forEach(funcName => this.mesh[funcName]());
     });
   }
 
-  generateAndRenderSteps(renderCallback, finalCallback) {
-    const cb = () => {
-      renderCallback(drawMesh(this.mesh).toDataURL());
-    }
-
-    defer(() => {
-      this.mesh = new Mesh(this.numberOfPoints);
-      cb();
-
-      defer(() => {
-        this.mesh.addRandomSlope();
-        this.mesh.findSeaLevel();
-        cb();
-
-        defer(() => {
-          this.mesh.addRandomCone();
-          this.mesh.findSeaLevel();
-          cb();
-
-          const bumpAmount = Math.ceil(this.mesh.goodBumpAmount() / 3);
-
-          defer(() => {
-            this.mesh.addRandomBumps(bumpAmount);
-            this.mesh.findSeaLevel();
-            cb();
-
-            defer(() => {
-              this.mesh.addRandomBumps(bumpAmount);
-              this.mesh.findSeaLevel();
-              cb();
-
-              defer(() => {
-                this.mesh.addRandomBumps(bumpAmount);
-                this.mesh.findSeaLevel();
-                cb();
-
-                defer(() => {
-                  this.mesh.fillSinks();
-                  this.mesh.findCoastline();
-                  cb();
-
-                  defer(() => {
-                    this.mesh.niceErode(3);
-                    this.mesh.findCoastline();
-                    cb();
-
-                    defer(() => {
-                      this.mesh.niceErode(2);
-                      this.mesh.findCoastline();
-                      cb();
-
-                      defer(() => {
-                        this.mesh.niceErode(2);
-                        this.mesh.findCoastline();
-                        cb();
-
-                        defer(() => {
-                          // this.mesh.relaxHeights(3);
-                          this.mesh.findCoastline();
-                          this.mesh.smoothCoast(1);
-                          this.mesh.findCoastline();
-
-                          cb();
-
-                          defer(() => {
-                            this.mesh.findRivers();
-                            cb();
-
-                            finalCallback();
-                          });
-                        });
-                      });
-                    });
-                  });
-                });
-              });
-            });
-          });
-        });
-      });
-    })
-  }
-
-  draw() {
-    return new Promise((resolve, reject) => {
-      window.setTimeout(() => {
-        const canvas = drawMesh(this.mesh);
-        const image = canvas.toDataURL();
-        resolve(image);
-      }, 0);
-    });
+  get image() {
+    const canvas = drawMesh(this.mesh);
+    return canvas.toDataURL();
   }
 }
 

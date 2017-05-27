@@ -1,12 +1,9 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
-
-import { headerVisibilityChange } from 'store/actions';
 
 import ChunkyButton from 'components/chunky-button';
+import Loader from 'components/loader';
 
 import Map from 'lib/map';
-import { randInRange } from 'lib/map/random';
 
 import './styles.scss';
 
@@ -16,26 +13,20 @@ class Creator extends Component {
 
     this.state = {
       displayHeight: 0,
-      image: null,
       loading: false,
+      image: null,
     };
 
     this.updateDisplaySize = this.updateDisplaySize.bind(this);
 
     this.generateClick = this.generateClick.bind(this);
-    this.erodeClick = this.erodeClick.bind(this);
-
     this.generate = this.generate.bind(this);
-    this.erode = this.erode.bind(this);
 
     this.renderImage = this.renderImage.bind(this);
     this.stopLoading = this.stopLoading.bind(this);
-
-    window.creator = this;
   }
 
   componentDidMount() {
-    // this.props.hideHeader();
     this.map = new Map();
 
     this.updateDisplaySize();
@@ -45,7 +36,6 @@ class Creator extends Component {
   }
 
   componentWillUnmount() {
-    this.props.showHeader();
     window.removeEventListener('resize', this.updateDisplaySize);
   }
 
@@ -64,19 +54,8 @@ class Creator extends Component {
       return;
     }
 
-    this.setState({
-      loading: true,
-    }, this.generate);
-  }
-
-  erodeClick() {
-    if (this.state.loading) {
-      return;
-    }
-
-    this.setState({
-      loading: true,
-    }, this.erode);
+    this.startLoading();
+    this.generate();
   }
 
   generate() {
@@ -84,24 +63,25 @@ class Creator extends Component {
       return;
     }
 
-    this.map.numberOfPoints = randInRange(7000, 8000);
-    // this.map.numberOfPoints = 1000;
+    this.map.numberOfPoints = 8192;
 
-    // this.map.generate().then(this.renderImage);
-    this.map.generateAndRenderSteps(this.renderImage, this.stopLoading);
-  }
-
-  drawMap() {
-    if (!this.map) {
-      return;
-    }
-
-    this.map.draw().then(this.renderImage).then(this.stopLoading);
+    setTimeout(() => {
+      this.map.generate();
+      this.renderImage(this.map.image);
+      this.stopLoading();
+    }, 1000);
   }
 
   renderImage(image) {
     this.setState({
-      image: image,
+      image,
+    });
+  }
+
+  startLoading() {
+    this.setState({
+      image: null,
+      loading: true,
     });
   }
 
@@ -111,43 +91,20 @@ class Creator extends Component {
     });
   }
 
-  erode() {
-    if (!this.map) {
-      return;
-    }
-
-    window.setTimeout(() => {
-      this.map.mesh.findSeaLevel();
-      this.map.mesh.niceErode(3);
-      // this.map.mesh.relaxHeights(3);
-      this.map.mesh.smoothCoast(1);
-      this.map.mesh.findCoastline();
-
-      this.drawMap();
-    }, 0);
-  }
-
   render() {
-    let displayContent = null;
+    let content;
+
     if (this.state.image) {
-      displayContent = (
+      content = (
         <img
-          src={this.state.image}
           title="Outpost map"
           alt="A map of your outpost"
+          src={this.state.image}
         />
       );
+    } else {
+      content = <Loader size={this.state.displayHeight / 1.8} />
     }
-
-    let mapButtons = null;
-
-    // if (this.map && this.map.mesh) {
-    //   mapButtons = (
-    //     <ChunkyButton onClick={this.erodeClick} disabled={this.state.loading}>
-    //       Erode
-    //     </ChunkyButton>
-    //   );
-    // }
 
     return (
       <div className="creator">
@@ -156,26 +113,17 @@ class Creator extends Component {
           style={ { height: this.state.displayHeight } }
           ref={display => this.display = display}
         >
-          {displayContent}
+          {content}
         </div>
 
         <div className="toolbar">
           <ChunkyButton onClick={this.generateClick} disabled={this.state.loading}>
             New
           </ChunkyButton>
-
-          {mapButtons}
         </div>
       </div>
     );
   }
 }
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    hideHeader: () => dispatch(headerVisibilityChange(false)),
-    showHeader: () => dispatch(headerVisibilityChange(true)),
-  };
-};
-
-export default connect(null, mapDispatchToProps)(Creator);
+export default Creator;

@@ -16,49 +16,11 @@ import {
 import { randInRange } from './random';
 import { erode, planchonDarboux, setDownhills, setFluxes } from './erosion-helper';
 
-export const vertexToString = (v) => `${v[0]}|${v[1]}`;
+export const vertexToString = (v) => v.join(',');
 
-/**
- * Centers are polygon centers.
- * Points/corners are triangle centers.
- */
 class Mesh {
   constructor(numberOfPoints) {
     this.generateMesh(numberOfPoints);
-  }
-
-  makeIntoCoast() {
-    this.addRandomSlope();
-    this.addRandomCone();
-    this.addRandomBumps();
-
-    // this.relaxHeights(2);
-
-    this.findSeaLevel();
-
-    this.niceErode(10);
-
-    // this.findSeaLevel();
-
-
-    // this depends on sea level
-    this.smoothCoast(1);
-
-
-    // This has to be last, so it comes after
-    // all height adjustments
-    this.findCoastline();
-
-    this.findRivers();
-  }
-
-  triangleEdges() {
-    return this.edges.map((edge) => {
-      if (edge.hasCenters) {
-        return [edge.center0, edge.center1];
-      }
-      return null;
-    }).filter(e => !!e);
   }
 
   triangles() {
@@ -67,166 +29,150 @@ class Mesh {
       .map((point) => {
         return {
           center: point,
-          vertices: point.touches,
+          vertices: point.corners,
         };
       });
   }
 
-  polygonEdges() {
-    return this.edges.map((edge) => {
-      return [edge.corner0, edge.corner1];
-    }).filter(e => !!e);
-  }
-
   generateMesh(numberOfPoints) {
-    const polygonCenters = generatePoints(numberOfPoints);
+    const corners = generatePoints(numberOfPoints);
 
+    // We're using the voronoi in a bit of a weird way - we generate it based
+    // on where we want our triangle-tile corners to be. The actual
+    // voronoi polygons aren't relevant to us ever.
     const voronoi = Voronoi()
       .x(d => d.x)
       .y(d => d.y)
-      .size([1, 1])(polygonCenters);
+      .size([1, 1])(corners);
 
-    const cornersById = {};
+    const pointsById = {};
 
     const edges = [];
-    const corners = [];
+    const points = [];
 
     voronoi.edges.forEach((edge) => {
       const formattedEdge = {};
 
-      // An edge means two centers. (Sometimes just one.)
-      const center0 = edge.left ? edge.left.data : null;
-      const center1 = edge.right ? edge.right.data : null;
+      // An edge means two points. (Sometimes just one,)
+      const corner0 = edge.left ? edge.left.data : null;
+      const corner1 = edge.right ? edge.right.data : null;
 
-
-      formattedEdge.center0 = center0;
-      formattedEdge.center1 = center1;
-
-      if (center0 && center1) {
-        formattedEdge.hasCenters = true;
-
-        center0.neighbors = center0.neighbors || [];
-        center1.neighbors = center1.neighbors || [];
-
-        center0.neighbors.push(center1);
-        center1.neighbors.push(center0);
-      }
-
-      // An edge also means two corners. (The things it's connecting.);
-      const cornerId0 = vertexToString(edge[0]);
-      const cornerId1 = vertexToString(edge[1]);
-
-      const corner0 = cornersById[cornerId0] || {
-        x: edge[0][0],
-        y: edge[0][1],
-        height: 0,
-        touches: [],
-        protrudes: [],
-        adjacent: [],
-        id: cornerId0,
-      };
-
-      if (!cornersById[cornerId0]) {
-        cornersById[cornerId0] = corner0;
-        corners.push(corner0);
-      }
-
-      const corner1 = cornersById[cornerId1] || {
-        x: edge[1][0],
-        y: edge[1][1],
-        height: 0,
-        touches: [],
-        protrudes: [],
-        adjacent: [],
-        id: cornerId1,
-      };
-
-      if (!cornersById[cornerId1]) {
-        cornersById[cornerId1] = corner1;
-        corners.push(corner1);
-      }
-
-      if (center0) {
-        if (!corner0.touches.includes(center0)) {
-          corner0.touches.push(center0);
-        }
-        if (!corner1.touches.includes(center0)) {
-          corner1.touches.push(center0);
-        }
-
-        center0.corners = center0.corners || [];
-        center0.borders = center0.borders || [];
-
-        if (!center0.corners.includes(corner0)) {
-          center0.corners.push(corner0);
-        }
-        if (!center0.corners.includes(corner1)) {
-          center0.corners.push(corner1);
-        }
-
-        center0.borders.push(formattedEdge);
-      }
-
-      if (center1) {
-        if (!corner0.touches.includes(center1)) {
-          corner0.touches.push(center1);
-        }
-        if (!corner1.touches.includes(center1)) {
-          corner1.touches.push(center1);
-        }
-
-        center1.corners = center1.corners || [];
-        center1.borders = center1.borders || [];
-
-        if (!center1.corners.includes(corner0)) {
-          center1.corners.push(corner0);
-        }
-        if (!center1.corners.includes(corner1)) {
-          center1.corners.push(corner1);
-        }
-
-        center1.borders.push(formattedEdge);
-      }
-
-      corner0.adjacent.push(corner1);
-      corner1.adjacent.push(corner0);
-
-      corner0.protrudes.push(formattedEdge);
-      corner1.protrudes.push(formattedEdge);
 
       formattedEdge.corner0 = corner0;
       formattedEdge.corner1 = corner1;
 
+      if (corner0 && corner1) {
+        formattedEdge.hasCorners = true;
+      }
+
+      // An edge also means two points (i.e. our triangle centers)
+      const pointId0 = vertexToString(edge[0]);
+      const pointId1 = vertexToString(edge[1]);
+
+      const point0 = pointsById[pointId0] || {
+        x: edge[0][0],
+        y: edge[0][1],
+        height: 0,
+        corners: [],
+        edges: [],
+        neighbors: [],
+        id: pointId0,
+      };
+
+      if (!pointsById[pointId0]) {
+        pointsById[pointId0] = point0;
+        points.push(point0);
+      }
+
+      const point1 = pointsById[pointId1] || {
+        x: edge[1][0],
+        y: edge[1][1],
+        height: 0,
+        corners: [],
+        edges: [],
+        neighbors: [],
+        id: pointId1,
+      };
+
+      if (!pointsById[pointId1]) {
+        pointsById[pointId1] = point1;
+        points.push(point1);
+      }
+
+      if (corner0) {
+        if (!point0.corners.includes(corner0)) {
+          point0.corners.push(corner0);
+        }
+        if (!point1.corners.includes(corner0)) {
+          point1.corners.push(corner0);
+        }
+
+        corner0.points = corner0.points || [];
+        corner0.borders = corner0.borders || [];
+
+        if (!corner0.points.includes(point0)) {
+          corner0.points.push(point0);
+        }
+
+        if (!corner0.points.includes(point1)) {
+          corner0.points.push(point1);
+        }
+
+        corner0.borders.push(formattedEdge);
+      }
+
+      if (corner1) {
+        if (!point0.corners.includes(corner1)) {
+          point0.corners.push(corner1);
+        }
+
+        if (!point1.corners.includes(corner1)) {
+          point1.corners.push(corner1);
+        }
+
+        corner1.points = corner1.points || [];
+        corner1.borders = corner1.borders || [];
+
+        if (!corner1.points.includes(point0)) {
+          corner1.points.push(point0);
+        }
+        if (!corner1.points.includes(point1)) {
+          corner1.points.push(point1);
+        }
+
+        corner1.borders.push(formattedEdge);
+      }
+
+      point0.neighbors.push(point1);
+      point1.neighbors.push(point0);
+
+      point0.edges.push(formattedEdge);
+      point1.edges.push(formattedEdge);
+
+      formattedEdge.point0 = point0;
+      formattedEdge.point1 = point1;
+
       if (
-        corner0.protrudes.length === 3 &&
-        corner0.protrudes.filter(p => p.hasCenters).length === 3
+        point0.edges.length === 3 &&
+        point0.edges.filter(p => p.hasCorners).length === 3
       ) {
-        corner0.isTriangle = true;
+        point0.isTriangle = true;
       }
 
       if (
-        corner1.protrudes.length === 3 &&
-        corner1.protrudes.filter(p => p.hasCenters).length === 3
+        point1.edges.length === 3 &&
+        point1.edges.filter(p => p.hasCorners).length === 3
       ) {
-        corner1.isTriangle = true;
+        point1.isTriangle = true;
       }
 
       edges.push(formattedEdge);
     });
 
-    // Now we tell corners that their neighbors are the
-    // adjacent corners
-    corners.forEach((corner) => {
-      corner.neighbors = corner.adjacent;
-    });
-
-
     Object.assign(this, {
-      voronoi,
       edges,
-      polygonCenters,
-      points: corners,
-      seaLevel: 0.01,
+      points,
+      seaLevel: 0,
     });
   }
 
@@ -256,28 +202,27 @@ class Mesh {
     const q = 0.35;
     this.seaLevel = quantile(sortedHeights, q);
 
-    // for rendering
-    const justQuantileDiff = 0.1;
-    this.justBelowSeaLevel = quantile(sortedHeights, q - justQuantileDiff);
-    this.justAboveSeaLevel = quantile(sortedHeights, q + justQuantileDiff);
+    // only used for rendering
+    this.justBelowSeaLevel = quantile(sortedHeights, q - 0.1);
+    this.justAboveSeaLevel = quantile(sortedHeights, q + 0.001);
   }
 
   findCoastline() {
     const coastline = [];
 
     this.edges.forEach((edge) => {
-      if (!edge.hasCenters) {
+      if (!edge.hasCorners) {
         return;
       }
 
-      const one = edge.corner0;
-      const two = edge.corner1;
+      const one = edge.point0;
+      const two = edge.point1;
 
       if (
         (one.height > this.seaLevel && two.height <= this.seaLevel) ||
         (one.height <= this.seaLevel && two.height > this.seaLevel)
       ) {
-        coastline.push([edge.center0, edge.center1]);
+        coastline.push([edge.corner0, edge.corner1]);
       }
     });
 
@@ -342,7 +287,17 @@ class Mesh {
     }
   }
 
-  smoothCoast(iterations = 1) {
+  normalizeHeights() {
+    const heights = this.points.map(p => p.height);
+    const scale = scaleLinear()
+      .domain([min(heights), max(heights)])
+      .range([0, 1]);
+
+    this.points.forEach(p => p.height = scale(p.height));
+    this.findSeaLevel();
+  }
+
+  smoothCoast(iterations = 2) {
     for (let i = 0; i < iterations; i++) {
       this.smoothCoastOnce();
     }
@@ -372,16 +327,18 @@ class Mesh {
     });
   }
 
-  niceErode(iterations = 5) {
+  niceErode(iterations = 8) {
     const heights = this.points.map(p => p.height);
     const span = max(heights) - min(heights)
-    const maxErode = span / 3;
-    const minErode = span / 5;
+    const maxErode = span;
+    const minErode = span / 2;
 
     for (let i = 0; i < iterations; i++) {
       this.erode(randInRange(minErode, maxErode));
       this.fillSinks();
     }
+
+    this.normalizeHeights();
   }
 
   erode(amount) {
@@ -419,12 +376,12 @@ class Mesh {
   }
 
   setFluxes() {
-    setFluxes(this.points);
+    setFluxes(this.points, this.seaLevel);
   }
 
   findRivers(n = 0.01) {
-    setDownhills(this.points);
-    setFluxes(this.points, this.seaLevel);
+    this.setDownhills();
+    this.setFluxes();
 
     const above = this.points
       .filter(p => p.height > this.seaLevel)

@@ -1,6 +1,6 @@
 import { max, min, scaleLinear } from 'd3';
 
-// All canvases made to be 1200 x 1200;
+// All canvases made to be 1200 x 1200 - good for retina
 const WIDTH = 1200;
 const HEIGHT = 1200;
 
@@ -27,31 +27,6 @@ function translateArray(point) {
     x: point[0],
     y: point[1],
   });
-}
-
-function drawCircle(ctx, center, r, color = '#333') {
-  ctx.beginPath();
-  ctx.arc(
-    center.x,
-    center.y,
-    r,
-    0,
-    Math.PI * 2
-  );
-  ctx.fillStyle = color;
-  ctx.fill();
-  ctx.closePath();
-}
-
-function drawPoints(points = [], { color = '#333', r = 2 }, c) {
-  const canvas = c || getCanvas();
-  const ctx = canvas.getContext('2d');
-
-  points.forEach((point) => {
-    drawCircle(ctx, translate(point), r, color);
-  });
-
-  return canvas;
 }
 
 function drawLines(lines, { color = '#333', lineWidth = 2 }, c) {
@@ -94,14 +69,15 @@ function fillShapes(shapes, colorCallback, c) {
     ctx.lineWidth = 1;
 
     const v0 = translate(shape.vertices[0]);
-    const v1 = translate(shape.vertices[1]);
-    const v2 = translate(shape.vertices[2]);
 
     ctx.beginPath();
     ctx.moveTo(v0.x, v0.y);
-    ctx.lineTo(v1.x, v1.y);
-    ctx.lineTo(v2.x, v2.y);
-    ctx.lineTo(v0.x, v0.y);
+
+    shape.vertices.slice(1).forEach((v) => {
+      const vert = translate(v);
+      ctx.lineTo(vert.x, vert.y);
+    });
+
     ctx.fill();
     ctx.stroke();
     ctx.closePath();
@@ -112,35 +88,6 @@ function fillShapes(shapes, colorCallback, c) {
 
 export function drawMesh(mesh, c) {
   const canvas = c || getCanvas();
-
-  // draw fluxmap
-
-  // if (mesh.points[0].flux) {
-  //   const fluxes = mesh.points.map(p => p.flux);
-  //   const minF = min(fluxes);
-  //   const maxF = max(fluxes);
-
-  //   const colorScale = scaleLinear()
-  //     .domain([minF, maxF])
-  //     .range(['#eee', '#e11']);
-
-  //   console.log(minF, maxF);
-
-  //   const colorForTriangle = (shape) => {
-  //     if (shape.center.height < mesh.seaLevel) {
-  //       return '#444';
-  //     } else {
-  //       return colorScale(shape.center.flux);
-  //     }
-  //   }
-  //   fillShapes(
-  //     mesh.triangles(),
-  //     colorForTriangle,
-  //     canvas
-  //   );
-  // }
-
-  // draw heightmap
 
   const heights = mesh.points.map(p => p.height);
   const minH = min(heights);
@@ -153,7 +100,7 @@ export function drawMesh(mesh, c) {
   } else {
     const colorScale = scaleLinear()
       .domain([minH,      mesh.justBelowSeaLevel, mesh.seaLevel, mesh.justAboveSeaLevel, maxH])
-      .range( ['#04023f', '#646291',              '#7A7980',     '#938e6d',              '#fdfff4']);
+      .range( ['#04023f', '#646291',              '#7A7980',     '#938e6d',              '#fffff8']);
 
     colorForTriangle = (shape) => {
       return colorScale(shape.center.height);
@@ -171,30 +118,21 @@ export function drawMesh(mesh, c) {
   }
 
   if (mesh.rivers) {
-    // drawLines(mesh.downhillLines(), { color: '#1d1', lineWidth: 1 }, canvas);
-    // drawPoints(mesh.points.filter(p => !p.downhill), { color: '#1d1', r: 5}, canvas);
     drawLines(mesh.rivers, { color: '#6d6b91', lineWidth: 2 }, canvas);
-    // drawLines(mesh.rivers, { color: '#1e1', lineWidth: 6 }, canvas);
   }
 
-  // drawLines(mesh.downhillLines(), { color: '#d11', lineWidth: 1 }, canvas);
+  const borderLines = mesh.edges
+    .filter((edge) => {
+      return (
+        edge.hasCorners && !(
+          edge.point0.isTriangle &&
+          edge.point1.isTriangle
+        )
+      );
+    })
+    .map(e => [e.corner0, e.corner1]);
 
-  // const fluxes = mesh.points.map(p => p.flux);
-  // const fluxScale = scaleLinear()
-  //   .domain([0, max(fluxes)])
-  //   .range([2, 4]);
-
-  // const ctx = canvas.getContext('2d');
-  // mesh.points.forEach((point) => {
-  //   drawCircle(ctx, translate(point), fluxScale(point.flux), '#1e1');
-  // });
-  // drawLines(mesh.triangleEdges(), {color: '#111'}, canvas);
-
-
-  // drawLines(mesh.polygonEdges(), {color: '#ccc'}, canvas);
-
-  // drawPoints(mesh.polygonCenters, {color: '#c00', r: 3}, canvas);
-  // drawPoints(mesh.points, {color: '#00c', r: 4}, canvas);
+  drawLines(borderLines, { color: '#47442e', lineWidth: 3 }, canvas);
 
   return canvas;
 }
