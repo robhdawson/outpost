@@ -13,7 +13,7 @@ export function randomPoints(amt) {
   return points;
 }
 
-function centroid(polygonPoints) {
+export function centroid(polygonPoints) {
   let x = 0;
   let y = 0;
 

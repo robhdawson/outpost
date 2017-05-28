@@ -17,6 +17,7 @@ class GlobeView extends Component {
     window.c = this;
 
     this.updateDisplaySize = this.updateDisplaySize.bind(this);
+    this.generate = this.generate.bind(this);
   }
 
   componentDidMount() {
@@ -27,7 +28,9 @@ class GlobeView extends Component {
       this.globe = new Globe();
       this.globe.attach(this.canvas);
 
-      this.generate();
+      window.setTimeout(() => {
+        this.generate();
+      });
     }, 0);
   }
 
@@ -73,7 +76,7 @@ class GlobeView extends Component {
         </div>
 
         <div className="toolbar">
-          <ChunkyButton>
+          <ChunkyButton onClick={this.generate}>
             New
           </ChunkyButton>
         </div>

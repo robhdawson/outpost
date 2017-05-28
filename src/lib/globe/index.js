@@ -1,10 +1,12 @@
 import {
   geoOrthographic,
-  geoGraticule10,
   geoPath,
   timer,
   now,
+  scaleLinear,
 } from 'd3';
+
+import Mesh from './mesh';
 
 const colors = {
   space: '#ffffff',
@@ -13,12 +15,22 @@ const colors = {
 
 const AUTOROTATE_SPEED = 0.005; // degrees per ms
 
+const meshSteps = [
+  ['addMountains', 20, 100],
+  ['addMountains', 10, 90],
+  ['addMountains', 13, 80],
+  ['addMountains', 100, 50],
+
+  ['normalizeHeights'],
+];
+
 class Globe {
   constructor() {
     window.globe = this;
 
+    this.mesh = new Mesh();
+
     this.projection = geoOrthographic().precision(0.1);
-    this.graticule = geoGraticule10();
   }
 
   attach(canvas) {
@@ -29,7 +41,7 @@ class Globe {
     const height = this.height = parseFloat(canvas.getAttribute('height'));
 
     this.projection
-      .scale(0.9 * Math.min(width, height) / 2)
+      .scale(0.8 * Math.min(width, height) / 2)
       .translate([width / 2, height / 2]);
 
 
@@ -62,15 +74,15 @@ class Globe {
   }
 
   render() {
-
-
-
-
     this.ctx.fillStyle = colors.space;
     this.ctx.fillRect(0, 0, this.width, this.height);
 
-    this.fill({type: 'Sphere'}, colors.water);
-    this.stroke(this.graticule, colors.space);
+    this.fill({type: 'Sphere'}, '#333');
+
+    const colorScale = scaleLinear().domain([0, 1]).range(['#333', '#efefef']);
+    this.mesh.triangles.forEach((triangle) => {
+      this.fill(triangle, colorScale(triangle.properties.height));
+    });
   }
 
   fill(object, color) {
@@ -89,7 +101,17 @@ class Globe {
   }
 
   generate() {
+    this.mesh = new Mesh();
+    window.setTimeout(() => {
+      this.mesh.generate(2000);
+      this.generateSteps();
+    });
+  }
 
+  generateSteps() {
+    meshSteps.forEach((step) => {
+      this.mesh[step[0]].apply(this.mesh, step.slice(1));
+    });
   }
 }
 
