@@ -6,11 +6,12 @@ import {
   scaleLinear,
   select,
   drag,
-  event as d3Event,
   quantile,
+  mouse,
 } from 'd3';
 
 import Mesh from './mesh';
+import { eulerAngles } from './euler-angles';
 
 const colors = {
   space: '#ffffff',
@@ -73,13 +74,6 @@ class Globe {
     this.timer = timer(this.tick.bind(this));
 
     const d = drag()
-      .subject(() => {
-        var r = this.projection.rotate();
-        return {
-          x: this.rotateScaleX.invert(r[0]),
-          y: this.rotateScaleY.invert(r[1])
-        };
-      })
       .on('start', this.dragStart.bind(this))
       .on('drag', this.dragging.bind(this))
       .on('end', this.dragEnd.bind(this));
@@ -94,14 +88,6 @@ class Globe {
     this.projection
       .scale(0.8 * Math.min(this.width, this.height) / 2)
       .translate([this.width / 2, this.height / 2]);
-
-    this.rotateScaleX = scaleLinear()
-      .domain([0, this.width])
-      .range([-180, 180]);
-
-    this.rotateScaleY = scaleLinear()
-      .domain([0, this.height])
-      .range([90, -90]);
   }
 
   detach() {
@@ -124,13 +110,27 @@ class Globe {
   dragStart() {
     window.clearTimeout(this.dragTimeout);
     this.isRotating = false;
+
+    this.lastDragStart = this.projection.invert(mouse(this.canvas));
   }
 
   dragging() {
-    this.projection.rotate([this.rotateScaleX(d3Event.x), this.rotateScaleY(d3Event.y)]);
+    const position = this.projection.invert(mouse(this.canvas));
+    const rotation = this.projection.rotate();
+
+    const newRotation = eulerAngles(
+      this.lastDragStart,
+      position,
+      rotation,
+    );
+
+    if (newRotation) {
+      this.projection.rotate(newRotation);
+    }
   }
 
   dragEnd() {
+    this.lastDragStart = null;
     this.dragTimeout = window.setTimeout(() => {
       this.isRotating = true;
     }, 1000);
