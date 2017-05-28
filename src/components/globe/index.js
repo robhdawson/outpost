@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 
 import ChunkyButton from 'components/chunky-button';
 
+import Globe from 'lib/globe';
+
 import './styles.scss';
 
 class GlobeView extends Component {
@@ -12,12 +14,28 @@ class GlobeView extends Component {
       displayHeight: 0,
     };
 
+    window.c = this;
+
     this.updateDisplaySize = this.updateDisplaySize.bind(this);
   }
 
   componentDidMount() {
     this.updateDisplaySize();
     window.addEventListener('resize', this.updateDisplaySize);
+
+    window.setTimeout(() => {
+      this.globe = new Globe();
+      this.globe.attach(this.canvas);
+
+      this.generate();
+    }, 0);
+  }
+
+  componentWillUnmount() {
+    if (this.globe) {
+      this.globe.detach();
+      delete this.globe;
+    }
   }
 
   updateDisplaySize() {
@@ -25,9 +43,17 @@ class GlobeView extends Component {
       return;
     }
 
+    const displayHeight = this.display.getBoundingClientRect().width;
+
     this.setState({
-      displayHeight: this.display.getBoundingClientRect().width,
+      displayHeight,
     });
+  }
+
+  generate() {
+    this.globe.generate();
+
+
   }
 
   render() {
@@ -39,6 +65,8 @@ class GlobeView extends Component {
           ref={display => this.display = display}
         >
           <canvas
+            width={this.state.displayHeight}
+            height={this.state.displayHeight}
             ref={canvas => this.canvas = canvas}
           >
           </canvas>
