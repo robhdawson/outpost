@@ -12,9 +12,11 @@ class Mesh {
     window.mesh = this;
     this.tiles = [];
     this.seaLevel = 0;
+
+    this.seaLevelQuantile = 0.6;
   }
 
-  generate(numberOfPoints = 5000) {
+  generate(numberOfPoints = 6000) {
     const points = [];
 
     // doing the fibonacci spiral sphere thing
@@ -85,7 +87,7 @@ class Mesh {
   setSeaLevel() {
     const heights = this.heights();
     heights.sort((a, b) => a - b);
-    this.seaLevel = quantile(heights, 0.5);
+    this.seaLevel = quantile(heights, this.seaLevelQuantile);
   }
 
   normalizeHeights() {
@@ -101,6 +103,118 @@ class Mesh {
 
   heights() {
     return this.tiles.map(t => t.properties.height);
+  }
+
+  setDownhills() {
+    this.tiles.forEach((tile) => {
+      let lowestHeight = tile.properties.height;
+      let downhill = null;
+
+      tile.properties.neighbors.forEach((neighbor) => {
+        if (neighbor.properties.height < lowestHeight) {
+          lowestHeight = neighbor.properties.height;
+          downhill = neighbor;
+        }
+      });
+
+      tile.properties.downhill = downhill;
+    });
+  }
+
+  fixDrainage() {
+    this.tiles.forEach((tile) => {
+      if (
+        tile.properties.downhill ||
+        tile.properties.height <= this.seaLevel
+      ) {
+        return;
+      }
+
+      tile.properties.height = this.seaLevel - 0.001;
+
+      tile.properties.neighbors.forEach((neighbor) => {
+        if (
+          neighbor.properties.height > this.seaLevel &&
+          Math.random() >= 0.2
+        ) {
+          neighbor.properties.height = this.seaLevel
+        }
+      });
+    });
+  }
+
+  setFluxes() {
+    this.tiles.forEach((tile) => {
+      tile.properties.flux = 1 / this.tiles.length;
+    });
+
+    // descending order - peaks first
+    const tilesByHeight = this.tiles.slice(0);
+    tilesByHeight.sort((a, b) => {
+      return b.properties.height - a.properties.height;
+    });
+
+    tilesByHeight.forEach((tile) => {
+      const downhill = tile.properties.downhill;
+      if (
+        downhill &&
+        downhill.properties.height > this.seaLevel
+      ) {
+        downhill.properties.flux += tile.properties.flux;
+      }
+    });
+  }
+
+  erode(iterations = 1) {
+    for (let i = 0; i < iterations; i++) {
+      this.setDownhills();
+      this.fixDrainage();
+      this.setFluxes();
+
+      const erosionRates = this.tiles.map((tile) => {
+        return Math.pow(tile.properties.flux, 3);
+      });
+
+      const heights = this.heights();
+      const minH = min(heights);
+      const maxH = max(heights);
+      const span = maxH - minH;
+
+      const erosionScale = scaleLinear()
+        .domain([min(erosionRates), max(erosionRates)])
+        .range([0, span / 12]);
+
+      this.tiles.forEach((tile, i) => {
+        if (tile.properties.height > this.seaLevel) {
+          tile.properties.height = tile.properties.height - erosionScale(erosionRates[i]);
+        }
+      });
+    }
+
+    this.smoothCoast();
+  }
+
+  smoothCoast() {
+    this.tiles.forEach((tile) => {
+      const neighborHeights = tile.properties.neighbors.map(n => n.properties.height);
+
+      if (tile.properties.height > this.seaLevel) {
+        // if it's above sea level, but more than most of the neighbors are below,
+        // move it down.
+        const downNeighbs = neighborHeights.filter(h => h <= this.seaLevel);
+
+        if (downNeighbs.length > tile.properties.neighbors.length / 2) {
+          tile.properties.height = mean(downNeighbs);
+        }
+      } else if  (tile.properties.height <= this.seaLevel) {
+        // vice-versa
+        const upNeighbs = neighborHeights.filter(h => h > this.seaLevel);
+
+        if (upNeighbs.length >= tile.properties.neighbors.length) {
+          tile.properties.height = mean(upNeighbs);
+        }
+      }
+    });
   }
 }
 
