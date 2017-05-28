@@ -54,9 +54,8 @@ class GlobeView extends Component {
   }
 
   generate() {
+    this.globe.reset();
     this.globe.generate();
-
-
   }
 
   render() {

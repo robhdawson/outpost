@@ -7,26 +7,42 @@ import {
   select,
   drag,
   event as d3Event,
-  min,
-  max,
+  quantile,
 } from 'd3';
 
 import Mesh from './mesh';
 
 const colors = {
   space: '#ffffff',
-  water: '#aaaaee',
+
+  deepWater: '#302e66',
+  midWater: '#4f4f7f',
+  shallowWater: '#8b8aad',
+
+  beach: '#a39984',
+  forest: '#cec8ab',
+  peakStart: '#ccc8b9',
+  peak: '#fffff8',
+
+  coastline: '#999277',
+  river: '#6d6b91',
 };
 
-const AUTOROTATE_SPEED = 0.005; // degrees per ms
+const AUTOROTATE_SPEED = 0.007; // degrees per ms
 
 const meshSteps = [
   ['addMountains', 3, 1, 0.7],
+  ['addMountains', 5, -0.7, 3.6],
+  ['relaxHeights'],
   ['addMountains', 10, 0.7],
   ['addMountains', 13, 0.6],
+  ['addMountains', 13, -0.6],
   ['addMountains', 40, 0.5],
   ['addMountains', 50, 0.4, 3],
-  ['addMountains', 5, 1, 0.5],
+  ['relaxHeights', 1],
+  ['addMountains', 6, 1, 0.5],
+  ['addMountains', 10, 0.6, 0.4],
+
 
   ['normalizeHeights'],
 
@@ -39,6 +55,8 @@ class Globe {
     this.mesh = new Mesh();
 
     this.projection = geoOrthographic().precision(0.1);
+
+    this.timeouts = [];
   }
 
   attach(canvas) {
@@ -91,9 +109,20 @@ class Globe {
       this.timer.stop();
       delete this.timer;
     }
+    this.clearTimeouts();
+  }
+
+  reset() {
+    this.clearTimeouts();
+  }
+
+  clearTimeouts() {
+    this.timeouts.forEach(t => window.clearTimeout(t));
+    this.timeouts = [];
   }
 
   dragStart() {
+    window.clearTimeout(this.dragTimeout);
     this.isRotating = false;
   }
 
@@ -102,7 +131,9 @@ class Globe {
   }
 
   dragEnd() {
-    this.isRotating = true;
+    this.dragTimeout = window.setTimeout(() => {
+      this.isRotating = true;
+    }, 1000);
   }
 
   tick(elapsed) {
@@ -128,39 +159,63 @@ class Globe {
     this.ctx.fillStyle = colors.space;
     this.ctx.fillRect(0, 0, this.width, this.height);
 
-    this.fill({type: 'Sphere'}, '#333');
+    this.fill({type: 'Sphere'}, colors.midWater);
 
-    const heights = this.mesh.triangles.map(t => t.properties.height);
+    const heights = this.mesh.heights();
+    heights.sort((a, b) => a - b);
 
-    const colorScale = scaleLinear().domain([min(heights), max(heights)]).range(['#333', '#efefef']);
-    this.mesh.triangles.forEach((triangle) => {
-      this.fill(triangle, colorScale(triangle.properties.height));
+    const seaHeights = [];
+    const landHeights = [];
+
+    heights.forEach((height) => {
+      if (height > this.mesh.seaLevel) {
+        landHeights.push(height);
+      } else {
+        seaHeights.push(height);
+      }
     });
 
-    // const d = 0.1;
-    // const dots = {
-    //   type: 'GeometryCollection',
-    //   geometries: [],
-    // };
+    const seaScale = scaleLinear()
+      .domain([
+        seaHeights[0],
+        quantile(seaHeights, 0.3),
+        seaHeights[seaHeights.length - 1],
+      ])
+      .range([
+        colors.deepWater,
+        colors.midWater,
+        colors.shallowWater,
+      ]);
 
-    // this.mesh.points.forEach((point) => {
-    //   const shape = {
-    //     type: 'Polygon',
-    //     coordinates: [
-    //       [
-    //         [point[0] - d, point[1] - d],
-    //         [point[0] + d, point[1] - d],
-    //         [point[0] + d, point[1] + d],
-    //         [point[0] - d, point[1] + d],
-    //         [point[0] - d, point[1] - d],
-    //       ],
-    //     ],
-    //   };
+    const landScale = scaleLinear()
+      .domain([
+        landHeights[0],
+        quantile(landHeights, 0.9),
+        quantile(landHeights, 0.96),
+        landHeights[landHeights.length - 1],
+      ])
+      .range([
+        colors.beach,
+        colors.forest,
+        colors.peakStart,
+        colors.peak,
+      ]);
 
-    //   dots.geometries.push(shape);
-    // });
+    this.mesh.tiles.forEach((tile) => {
+      const h = tile.properties.height;
+      const color = h > this.mesh.seaLevel ? landScale(h) : seaScale(h);
+      this.fillAndStroke(tile, color);
+    });
+  }
 
-    // this.stroke(dots, '#811');
+  fillAndStroke(object, color) {
+    this.ctx.beginPath();
+    this.path(object);
+    this.ctx.fillStyle = color;
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = 1;
+    this.ctx.fill();
+    this.ctx.stroke();
   }
 
   fill(object, color) {
@@ -174,23 +229,24 @@ class Globe {
     this.ctx.beginPath();
     this.path(object);
     this.ctx.strokeStyle = color;
-    this.ctx.lineWidth = 4;
+    this.ctx.lineWidth = 1;
     this.ctx.stroke();
   }
 
   generate() {
     this.mesh = new Mesh();
-    window.setTimeout(() => {
+    this.timeouts.push(window.setTimeout(() => {
       this.mesh.generate();
       this.generateSteps();
-    }, 0);
+    }, 0));
   }
 
   generateSteps() {
     meshSteps.forEach((step, i) => {
-      window.setTimeout(() => {
+      this.timeouts.push(window.setTimeout(() => {
+        console.log('step:', step);
         this.mesh[step[0]].apply(this.mesh, step.slice(1));
-      }, 1000 * i);
+      }, 1000 * i));
     });
   }
 }
