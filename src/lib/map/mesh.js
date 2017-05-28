@@ -444,8 +444,9 @@ class Mesh {
     this.setFluxes();
 
     const above = this.points
-      .filter(p => p.height > this.seaLevel)
-      .sort((a, b) => b.flux - a.flux);
+      .filter(p => p.height > this.seaLevel);
+
+    above.sort((a, b) => b.flux - a.flux);
 
     const limit = n * (above.length / this.points.length);
 

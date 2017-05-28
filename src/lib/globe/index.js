@@ -32,6 +32,8 @@ const colors = {
 const AUTOROTATE_SPEED = 0.007; // degrees per ms
 
 const meshSteps = [
+  ['generate'],
+
   ['addMountains', 10, 0.1, 20],
   ['addMountains', 10, -0.1, 20],
   ['addMountains', 3, 1, 0.7],
@@ -51,6 +53,8 @@ const meshSteps = [
   ['erode'],
   ['erode'],
   ['erode'],
+
+  ['findRivers'],
 ];
 
 class Globe {
@@ -210,6 +214,17 @@ class Globe {
       const color = h > this.mesh.seaLevel ? landScale(h) : seaScale(h);
       this.fillAndStroke(tile, color);
     });
+
+    if (this.mesh.rivers) {
+      this.mesh.rivers.forEach((river) => {
+        this.stroke({
+            type: 'LineString',
+            coordinates: river,
+          },
+          colors.shallowWater,
+        );
+      });
+    }
   }
 
   fillAndStroke(object, color) {
@@ -229,18 +244,17 @@ class Globe {
     this.ctx.fill();
   }
 
-  stroke(object, color) {
+  stroke(object, color, lineWidth = 1) {
     this.ctx.beginPath();
     this.path(object);
     this.ctx.strokeStyle = color;
-    this.ctx.lineWidth = 1;
+    this.ctx.lineWidth = lineWidth;
     this.ctx.stroke();
   }
 
   generate() {
     this.mesh = new Mesh();
     this.timeouts.push(window.setTimeout(() => {
-      this.mesh.generate();
       this.generateSteps();
     }, 0));
   }

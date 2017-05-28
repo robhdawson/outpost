@@ -7,6 +7,8 @@ import {
   quantile,
 } from 'd3';
 
+import riverFinder from './river-finder'
+
 class Mesh {
   constructor(props) {
     window.mesh = this;
@@ -47,6 +49,7 @@ class Mesh {
       tile.properties.center = tile.properties.site;
       tile.properties.neighbors = tile.properties.neighbours.map(i => this.tiles[i]);
       tile.properties.neighborIds = tile.properties.neighbours;
+      tile.properties.id = tile.properties.site.index;
       delete tile.properties.neighbours;
     });
   }
@@ -168,7 +171,6 @@ class Mesh {
   erode(iterations = 1) {
     for (let i = 0; i < iterations; i++) {
       this.setDownhills();
-      this.fixDrainage();
       this.setFluxes();
 
       const erosionRates = this.tiles.map((tile) => {
@@ -215,6 +217,14 @@ class Mesh {
         }
       }
     });
+  }
+
+  findRivers(threshold) {
+    this.setDownhills();
+    this.fixDrainage();
+    this.setFluxes();
+
+    this.rivers = riverFinder(this.tiles, this.seaLevel, threshold);
   }
 }
 
