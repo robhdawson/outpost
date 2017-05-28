@@ -1,0 +1,26 @@
+@import 'styles/global';
+
+.creator {
+
+  .display {
+    margin-bottom: 12px;
+    border-radius: 3px;
+    border: 2px solid $black;
+
+    width: 100%;
+
+    overflow: hidden;
+
+    position: relative;
+
+    img {
+      width: 100%;
+    }
+  }
+
+  .toolbar {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
+}

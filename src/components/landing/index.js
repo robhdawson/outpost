@@ -18,11 +18,20 @@ This site is a work in progress. I don't know what it is yet, honestly.
         </p>
       </div>
 
-      <Link to="/creator">
-        <ChunkyButton>
-          Okay
-        </ChunkyButton>
-      </Link>
+      <div className="links">
+        <Link to="/map">
+          <ChunkyButton>
+            Map
+          </ChunkyButton>
+        </Link>
+
+
+        <Link to="/globe">
+          <ChunkyButton>
+            Globe
+          </ChunkyButton>
+        </Link>
+      </div>
     </div>
   );
 };
