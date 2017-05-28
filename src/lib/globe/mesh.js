@@ -14,14 +14,31 @@ class Mesh {
     this.triangles = [];
   }
 
-  generate(numberOfPoints) {
-    const source1 = geojsonRandom.point(numberOfPoints);
+  generate(numberOfPoints = 3000) {
+    const points = [];
+    const phi = ((Math.sqrt(5) + 1) / 2) - 1; // golden ratio
+    const ga = phi * 2 * Math.PI;           // golden angle
+
+    for(let i = 0; i < numberOfPoints; i++) {
+      let lon = (ga * i);
+
+      while (lon > Math.PI) {
+        lon = lon - (Math.PI * 2);
+      }
+
+      const lat = Math.asin(-1 + ((2 * i) / numberOfPoints));
+
+      // geojson is lon,lat!!! don't forget this or u will die
+      points.push([
+        radiansToDegrees(lon),
+        radiansToDegrees(lat),
+      ]);
+    }
+
+    this.points = points;
+
     const voronoi = geoVoronoi();
-
-    const source2 = voronoi.polygons(source1).features.map(centroid);
-    const source3 = voronoi.polygons(source2).features.map(centroid);
-
-    this.triangles = voronoi.triangles(source3).features;
+    this.triangles = voronoi.triangles(points).features;
 
     this.triangles.forEach(function(triangle) {
       triangle.properties.height = 0;
@@ -30,12 +47,14 @@ class Mesh {
     });
   }
 
-  addMountains(n, height) {
+  addMountains(n, height, radiusModifier = 1) {
     const peaks = geojsonRandom.point(n)
       .features.map(f => f.geometry.coordinates);
 
+    const radius = (height / 8) * Math.PI * radiusModifier;
+
     const scale = scaleLinear()
-      .domain([0, height / 3])
+      .domain([0, radius])
       .range([height, 0])
       .clamp(true);
 
@@ -59,21 +78,29 @@ class Mesh {
 
 export default Mesh;
 
-function centroid(feature) {
-  let x = 0;
-  let y = 0;
+function radiansToDegrees(x) {
+  return x * 180 / Math.PI
+};
 
-  const points = feature.coordinates[0];
-  points.forEach((point) => {
-    x += point[0];
-    y += point[1];
-  });
-
-  return [x/points.length, y/points.length];
+function degreesToRadians(x) {
+  return x * (Math.PI/180)
 };
 
 function distance(a, b) {
-  return Math.sqrt(
-    Math.pow(b[0] - a[0], 2) + Math.pow(b[1] - a[1], 2)
-  );
+  const latA = a[1];
+  const latB = b[1];
+  const lonA = a[0];
+  const lonB = b[0];
+
+  const dLat = degreesToRadians(latB - latA);
+  const dLon = degreesToRadians(lonB - lonA);
+
+  const n =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(degreesToRadians(latA)) * Math.cos(degreesToRadians(latB)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+    ;
+
+  var c = 2 * Math.atan2(Math.sqrt(n), Math.sqrt(1 - n));
+  return c;
 }

@@ -31,7 +31,7 @@ class GlobeView extends Component {
       window.setTimeout(() => {
         this.generate();
       });
-    }, 0);
+    }, 10);
   }
 
   componentWillUnmount() {
