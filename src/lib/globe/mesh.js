@@ -11,20 +11,24 @@ import {
 const MeshWorker = require('worker-loader!./mesh-worker.js');
 
 class Mesh {
-  constructor(props) {
-    this.m = {};
+  constructor(m) {
+    this.m = m;
+
     this.worker = new MeshWorker();
   }
 
   generate(steps, callback) {
+    this.m.done = false;
     this.steps = steps;
 
     this.worker.onmessage = (e) => {
       Object.assign(this.m, e.data.mesh);
 
-      callback(this.m);
-
       const nextStep = this.steps[e.data.nextStep];
+
+      this.m.done = !nextStep;
+
+      callback(this.m);
 
       if (nextStep) {
         this.worker.postMessage({
@@ -34,7 +38,7 @@ class Mesh {
           mesh: this.m,
         });
       } else {
-        this.done = true;
+        this.m.done = true;
       }
     };
 
@@ -45,7 +49,6 @@ class Mesh {
       mesh: this.m,
     });
   }
-
 
   heights() {
     return this.tiles.map(t => t.properties.height);

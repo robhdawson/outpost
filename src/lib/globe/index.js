@@ -8,24 +8,15 @@ import {
   mouse,
 } from 'd3';
 
+import GIF from 'gif.js';
+
 import Mesh from './mesh';
 import { eulerAngles } from './euler-angles';
-
-const colors = {
-  deepWater: '#302e66',
-  midWater: '#4f4f7f',
-  shallowWater: '#8b8aad',
-
-  beach: '#a39984',
-  forest: '#cec8ab',
-  peakStart: '#ccc8b9',
-  peak: '#fffff8',
-
-  coastline: '#999277',
-  river: '#6d6b91',
-};
+import palettes from './palettes';
 
 const AUTOROTATE_SPEED = 0.007; // degrees per ms
+
+const GIF_FRAMES = 100;
 
 const meshSteps = [
   ['setup'],
@@ -44,11 +35,11 @@ const meshSteps = [
   ['addMountains', 6, 1, 0.5],
   ['addMountains', 10, 0.6, 0.4],
 
-  ['erode'],
-  ['erode'],
-  ['erode'],
-  ['erode'],
-  ['erode'],
+  // ['erode'],
+  // ['erode'],
+  // ['erode'],
+  // ['erode'],
+  // ['erode'],
 ];
 
 class Globe {
@@ -61,7 +52,57 @@ class Globe {
     this.timeouts = [];
   }
 
-  attach(canvas) {
+  generate() {
+    this.mesh = new Mesh({
+      palette: palettes.earth,
+      seaLevelQuantile: 0.5,
+    });
+    this.mesh.generate(meshSteps, this.onMeshUpdate.bind(this));
+  }
+
+  onMeshUpdate(mesh) {
+    this.lastMesh = mesh;
+    this.render();
+
+    if (this.done && this.forceRerender) {
+      this.forceRerender();
+    }
+  }
+
+  makeGif(callback) {
+    if (!this.canvas) {
+      return;
+    }
+
+    this.timer.stop();
+
+    const gif = new GIF({
+      workers: 3,
+      quality: 10,
+      width: this.canvas.getAttribute('width'),
+      height: this.canvas.getAttribute('height'),
+    });
+
+    for (let i = 0; i < GIF_FRAMES; i++) {
+      const currentRotation = this.projection.rotate();
+      currentRotation[0] += (360 / GIF_FRAMES);
+      this.projection.rotate(currentRotation);
+      this.render();
+
+      gif.addFrame(this.ctx, { copy: true, delay: (3500 / GIF_FRAMES) });
+    }
+
+    gif.on('finished', (blob) => {
+      callback(URL.createObjectURL(blob));
+      this.timer.restart(this.tick.bind(this));
+    });
+
+    gif.render();
+  }
+
+  attach(canvas, forceRerender) {
+    this.forceRerender = forceRerender;
+
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
 
@@ -158,11 +199,15 @@ class Globe {
   }
 
   render() {
+    if (!this.ctx) {
+      return;
+    }
+
     this.ctx.fillStyle = '#222';
     this.ctx.fillRect(0, 0, this.width, this.height);
 
     if (!this.lastMesh.tiles) {
-      this.fill({type: 'Sphere'}, colors.midWater);
+      this.fill({type: 'Sphere'}, '#5b1b09');
       return;
     };
 
@@ -196,14 +241,8 @@ class Globe {
     this.ctx.stroke();
   }
 
-  onMeshUpdate(mesh) {
-    this.lastMesh = mesh;
-    this.render();
-  }
-
-  generate() {
-    this.mesh = new Mesh();
-    this.mesh.generate(meshSteps, this.onMeshUpdate.bind(this));
+  get done() {
+    return this.lastMesh && this.lastMesh.done;
   }
 }
 

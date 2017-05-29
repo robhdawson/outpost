@@ -18,6 +18,7 @@ class GlobeView extends Component {
 
     this.updateDisplaySize = this.updateDisplaySize.bind(this);
     this.generate = this.generate.bind(this);
+    this.makeGif = this.makeGif.bind(this);
   }
 
   componentDidMount() {
@@ -26,11 +27,8 @@ class GlobeView extends Component {
 
     window.setTimeout(() => {
       this.globe = new Globe();
-      this.globe.attach(this.canvas);
-
-      window.setTimeout(() => {
-        this.generate();
-      });
+      this.globe.attach(this.canvas, this.forceUpdate.bind(this));
+      this.generate();
     }, 10);
   }
 
@@ -51,15 +49,30 @@ class GlobeView extends Component {
     this.setState({
       displayHeight,
     });
-
-    if (this.globe) {
-      this.globe.scale(displayHeight, displayHeight);
-    }
   }
 
   generate() {
     this.globe.reset();
     this.globe.generate();
+  }
+
+  makeGif() {
+    this.setState({
+      loading: true,
+    });
+    this.globe.makeGif((img) => {
+      const a = document.createElement('a');
+      a.setAttribute('href', img);
+
+      a.setAttribute('download', 'outpost.gif');
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      this.setState({
+        loading: false,
+      });
+    });
   }
 
   render() {
@@ -71,8 +84,8 @@ class GlobeView extends Component {
           ref={display => this.display = display}
         >
           <canvas
-            width={this.state.displayHeight}
-            height={this.state.displayHeight}
+            width="540"
+            height="540"
             ref={canvas => this.canvas = canvas}
           >
           </canvas>
@@ -81,6 +94,10 @@ class GlobeView extends Component {
         <div className="toolbar">
           <ChunkyButton onClick={this.generate}>
             New
+          </ChunkyButton>
+
+          <ChunkyButton onClick={this.makeGif} disabled={!(this.globe && this.globe.done)}>
+            Download as GIF
           </ChunkyButton>
         </div>
       </div>

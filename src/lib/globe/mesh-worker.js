@@ -7,8 +7,6 @@ import {
   quantile,
 } from 'd3';
 
-import palettes from './palettes';
-
 self.onmessage = (e) => {
   if (e.data.type === 'step') {
     const step = e.data.step;
@@ -131,8 +129,6 @@ const steps = {
     this.corners = corners;
 
     this.seaLevel = 0;
-    this.seaLevelQuantile = 0.6;
-    this.palette = palettes.earth;
 
     afterHeightChange(this);
   },
