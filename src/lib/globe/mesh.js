@@ -18,7 +18,7 @@ class Mesh {
     this.seaLevelQuantile = 0.6;
   }
 
-  generate(numberOfPoints = 6000) {
+  generate(numberOfPoints = 2000) {
     const points = [];
 
     // doing the fibonacci spiral sphere thing
@@ -44,14 +44,62 @@ class Mesh {
     const voronoi = geoVoronoi();
     this.tiles = voronoi.polygons(points).features;
 
+    const cornersById = {};
+
     this.tiles.forEach((tile) => {
       tile.properties.height = 0;
       tile.properties.center = tile.properties.site;
       tile.properties.neighbors = tile.properties.neighbours.map(i => this.tiles[i]);
       tile.properties.neighborIds = tile.properties.neighbours;
       tile.properties.id = tile.properties.site.index;
+      tile.properties.corners = [];
+
       delete tile.properties.neighbours;
+
+      const tileCorners = [];
+
+      tile.coordinates[0].forEach((coords, i) => {
+        if (i === tile.coordinates[0].length - 1) {
+          return;
+        }
+
+        const cornerId = coords.join(',');
+        const corner = cornersById[cornerId] || {
+          id: cornerId,
+          coords: coords,
+          height: 0,
+        };
+
+        corner.touches = corner.touches || [];
+        corner.touches.push(tile);
+
+        cornersById[corner.id] = corner;
+
+        tileCorners.push(corner);
+        tile.properties.corners.push(corner);
+      });
+
+      tileCorners.forEach((corner, i) => {
+        corner.adjacent = corner.adjacent || [];
+
+        if (i > 0) {
+          corner.adjacent.push(tileCorners[i - 1]);
+        }
+
+        if (i < tileCorners.length - 1) {
+          corner.adjacent.push(tileCorners[i + 1]);
+        }
+
+      });
     });
+
+    const corners = [];
+    Object.keys(cornersById).forEach((id) => {
+      const corner = cornersById[id];
+      corners.push(corner);
+    });
+
+    this.corners = corners;
   }
 
   addMountains(n, height, radiusModifier = 1) {
@@ -138,7 +186,7 @@ class Mesh {
       tile.properties.neighbors.forEach((neighbor) => {
         if (
           neighbor.properties.height > this.seaLevel &&
-          Math.random() >= 0.2
+          Math.random() >= 0.8
         ) {
           neighbor.properties.height = this.seaLevel
         }
@@ -205,14 +253,14 @@ class Mesh {
         // move it down.
         const downNeighbs = neighborHeights.filter(h => h <= this.seaLevel);
 
-        if (downNeighbs.length > tile.properties.neighbors.length / 2) {
+        if (downNeighbs.length > tile.properties.neighbors.length / 1.5) {
           tile.properties.height = mean(downNeighbs);
         }
       } else if  (tile.properties.height <= this.seaLevel) {
         // vice-versa
         const upNeighbs = neighborHeights.filter(h => h > this.seaLevel);
 
-        if (upNeighbs.length >= tile.properties.neighbors.length) {
+        if (upNeighbs.length >= tile.properties.neighbors.length / 1.5) {
           tile.properties.height = mean(upNeighbs);
         }
       }
