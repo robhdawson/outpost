@@ -16,9 +16,37 @@ class Mesh {
     this.seaLevel = 0;
 
     this.seaLevelQuantile = 0.6;
+
+    this.worker = new Worker('workers/planet-worker.js');
   }
 
-  generate(numberOfPoints = 5400) {
+  generate(steps, callback) {
+    this.steps = steps;
+
+    this.worker.onmessage = (e) => {
+      callback(e.data.mesh);
+
+      const nextStep = this.steps[e.data.nextStep];
+
+      if (nextStep) {
+        this.worker.postMessage({
+          type: 'step',
+          step: nextStep,
+          index: e.data.nextStep,
+        });
+      } else {
+        this.done = true;
+      }
+    };
+
+    this.worker.postMessage({
+      type: 'step',
+      step: this.steps[0],
+      index: 0,
+    });
+  }
+
+  getPoints(numberOfPoints = 5400) {
     const points = [];
 
     // doing the fibonacci spiral sphere thing

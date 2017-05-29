@@ -32,8 +32,7 @@ const colors = {
 const AUTOROTATE_SPEED = 0.007; // degrees per ms
 
 const meshSteps = [
-  ['generate'],
-
+  ['getPoints'],
   ['addMountains', 10, 0.1, 20],
   ['addMountains', 10, -0.1, 20],
   ['addMountains', 3, 1, 0.7],
@@ -63,6 +62,7 @@ class Globe {
     window.globe = this;
 
     this.mesh = new Mesh();
+    this.lastMesh = this.mesh;
 
     this.projection = geoOrthographic().precision(0.1);
 
@@ -170,14 +170,18 @@ class Globe {
 
     this.fill({type: 'Sphere'}, colors.midWater);
 
-    const heights = this.mesh.heights();
+    if (!this.lastMesh.tiles) {
+      return;
+    };
+
+    const heights = this.lastMesh.heights();
     heights.sort((a, b) => a - b);
 
     const seaHeights = [];
     const landHeights = [];
 
     heights.forEach((height) => {
-      if (height > this.mesh.seaLevel) {
+      if (height > this.lastMesh.seaLevel) {
         landHeights.push(height);
       } else {
         seaHeights.push(height);
@@ -210,15 +214,15 @@ class Globe {
         colors.peak,
       ]);
 
-    this.mesh.tiles.forEach((tile) => {
+    this.lastMesh.tiles.forEach((tile) => {
       const h = tile.properties.height;
-      const color = h > this.mesh.seaLevel ? landScale(h) : seaScale(h);
+      const color = h > this.lastMesh.seaLevel ? landScale(h) : seaScale(h);
       this.fillAndStroke(tile, color);
     });
 
-    if (this.mesh.rivers) {
+    if (this.lastMesh.rivers) {
       this.ctx.globalAlpha = 0.6;
-      this.mesh.rivers.forEach((river) => {
+      this.lastMesh.rivers.forEach((river) => {
         this.stroke({
             type: 'LineString',
             coordinates: river,
@@ -256,20 +260,14 @@ class Globe {
     this.ctx.stroke();
   }
 
-  generate() {
-    this.mesh = new Mesh();
-    this.timeouts.push(window.setTimeout(() => {
-      this.generateSteps();
-    }, 0));
+  onMeshUpdate(mesh) {
+    this.lastMesh = mesh;
+    this.render();
   }
 
-  generateSteps() {
-    meshSteps.forEach((step, i) => {
-      this.timeouts.push(window.setTimeout(() => {
-        console.log('step:', step);
-        this.mesh[step[0]].apply(this.mesh, step.slice(1));
-      }, 500 * i));
-    });
+  generate() {
+    this.mesh = new Mesh();
+    this.mesh.generate(meshSteps, this.onMeshUpdate.bind(this));
   }
 }
 
