@@ -169,20 +169,6 @@ class Globe {
     this.lastMesh.tiles.forEach((tile) => {
       this.fillAndStroke(tile, tile.properties.color);
     });
-
-    // if (this.lastMesh.rivers) {
-    //   this.ctx.globalAlpha = 0.6;
-    //   this.lastMesh.rivers.forEach((river) => {
-    //     this.stroke({
-    //         type: 'LineString',
-    //         coordinates: river,
-    //       },
-    //       colors.shallowWater,
-    //       2,
-    //     );
-    //   });
-    //   this.ctx.globalAlpha = 1;
-    // }
   }
 
   fillAndStroke(object, color) {

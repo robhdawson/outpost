@@ -183,6 +183,36 @@ const steps = {
 
     afterHeightChange(this);
   },
+
+  // erode(iterations = 1) {
+  //   for (let i = 0; i < iterations; i++) {
+  //     this.setDownhills();
+  //     this.setFluxes();
+
+  //     const erosionRates = this.tiles.map((tile) => {
+  //       return Math.pow(tile.properties.flux, 3);
+  //     });
+
+  //     const heights = this.heights();
+  //     const minH = min(heights);
+  //     const maxH = max(heights);
+  //     const span = maxH - minH;
+
+  //     const erosionScale = scaleLinear()
+  //       .domain([min(erosionRates), max(erosionRates)])
+  //       .range([0, span / 12]);
+
+  //     this.tiles.forEach((tile, i) => {
+  //       if (tile.properties.height > this.seaLevel) {
+  //         tile.properties.height = tile.properties.height - erosionScale(erosionRates[i]);
+  //       }
+  //     });
+  //   }
+
+  //   smoothCoast(this);
+
+  //   afterHeightChange(this);
+  // }
 }
 
 function afterHeightChange(mesh) {
