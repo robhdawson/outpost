@@ -40,22 +40,22 @@ const meshSteps = [
   ['addMountains', 6, -0.7, 5],
   ['addMountains', 14, -0.6],
   ['addMountains', 100, 0.4, 0.8],
-  // ['addMountains', 50, -0.5, 2],
-  // ['relaxHeights'],
-  // ['addMountains', 10, 0.7],
-  // ['addMountains', 12, 0.6],
-  // ['addMountains', 40, 0.5],
-  // ['relaxHeights', 1],
-  // ['addMountains', 6, 1, 0.5],
-  // ['addMountains', 10, 0.6, 0.4],
+  ['addMountains', 50, -0.5, 2],
+  ['relaxHeights'],
+  ['addMountains', 10, 0.7],
+  ['addMountains', 12, 0.6],
+  ['addMountains', 40, 0.5],
+  ['relaxHeights', 1],
+  ['addMountains', 6, 1, 0.5],
+  ['addMountains', 10, 0.6, 0.4],
 
-  // ['erode'],
-  // ['erode'],
-  // ['erode'],
-  // ['erode'],
-  // ['erode'],
+  ['erode'],
+  ['erode'],
+  ['erode'],
+  ['erode'],
+  ['erode'],
 
-  ['findRivers'],
+  // ['findRivers'],
 ];
 
 class Globe {
@@ -217,7 +217,7 @@ class Globe {
     });
 
     if (this.mesh.rivers) {
-      this.ctx.globalAlpha = 0.3;
+      this.ctx.globalAlpha = 0.6;
       this.mesh.rivers.forEach((river) => {
         this.stroke({
             type: 'LineString',

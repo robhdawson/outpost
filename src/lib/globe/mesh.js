@@ -18,21 +18,24 @@ class Mesh {
     this.seaLevelQuantile = 0.6;
   }
 
-  generate(numberOfPoints = 2000) {
+  generate(numberOfPoints = 5400) {
     const points = [];
 
     // doing the fibonacci spiral sphere thing
     const phi = ((Math.sqrt(5) + 1) / 2) - 1; // golden ratio
     const ga = phi * 2 * Math.PI;           // golden angle
 
+    const w = degreesToRadians(4);
+    const wiggle = () => (Math.random() * w) - (w / 2);
+
     for(let i = 0; i < numberOfPoints; i++) {
-      let lon = (ga * i);
+      let lon = (ga * i) + wiggle();
 
       while (lon > Math.PI) {
         lon = lon - (Math.PI * 2);
       }
 
-      const lat = Math.asin(-1 + ((2 * i) / numberOfPoints));
+      const lat = Math.asin(-1 + ((2 * i) / numberOfPoints)) + wiggle();
 
       // geojson is lon,lat!!! don't forget this or u will die
       points.push([
