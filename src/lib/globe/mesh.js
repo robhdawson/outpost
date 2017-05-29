@@ -1,4 +1,3 @@
-import { geoVoronoi } from 'd3-geo-voronoi';
 import {
   scaleLinear,
   max,
@@ -7,7 +6,10 @@ import {
   quantile,
 } from 'd3';
 
-import riverFinder from './river-finder'
+// import riverFinder from './river-finder';
+
+/* eslint-disable import/no-webpack-loader-syntax */
+const MeshWorker = require('worker-loader!./mesh-worker.js');
 
 class Mesh {
   constructor(props) {
@@ -17,14 +19,18 @@ class Mesh {
 
     this.seaLevelQuantile = 0.6;
 
-    this.worker = new Worker('workers/planet-worker.js');
+    this.m = {};
+
+    this.worker = new MeshWorker();
   }
 
   generate(steps, callback) {
     this.steps = steps;
 
     this.worker.onmessage = (e) => {
-      callback(e.data.mesh);
+      Object.assign(this.m, e.data.mesh);
+
+      callback(this.m);
 
       const nextStep = this.steps[e.data.nextStep];
 
@@ -33,6 +39,7 @@ class Mesh {
           type: 'step',
           step: nextStep,
           index: e.data.nextStep,
+          mesh: this.m,
         });
       } else {
         this.done = true;
@@ -43,94 +50,8 @@ class Mesh {
       type: 'step',
       step: this.steps[0],
       index: 0,
+      mesh: this.m,
     });
-  }
-
-  getPoints(numberOfPoints = 5400) {
-    const points = [];
-
-    // doing the fibonacci spiral sphere thing
-    const phi = ((Math.sqrt(5) + 1) / 2) - 1; // golden ratio
-    const ga = phi * 2 * Math.PI;           // golden angle
-
-    const w = degreesToRadians(4);
-    const wiggle = () => (Math.random() * w) - (w / 2);
-
-    for(let i = 0; i < numberOfPoints; i++) {
-      let lon = (ga * i) + wiggle();
-
-      while (lon > Math.PI) {
-        lon = lon - (Math.PI * 2);
-      }
-
-      const lat = Math.asin(-1 + ((2 * i) / numberOfPoints)) + wiggle();
-
-      // geojson is lon,lat!!! don't forget this or u will die
-      points.push([
-        radiansToDegrees(lon),
-        radiansToDegrees(lat),
-      ]);
-    }
-
-    const voronoi = geoVoronoi();
-    this.tiles = voronoi.polygons(points).features;
-
-    const cornersById = {};
-
-    this.tiles.forEach((tile) => {
-      tile.properties.height = 0;
-      tile.properties.center = tile.properties.site;
-      tile.properties.neighbors = tile.properties.neighbours.map(i => this.tiles[i]);
-      tile.properties.neighborIds = tile.properties.neighbours;
-      tile.properties.id = tile.properties.site.index;
-      tile.properties.corners = [];
-
-      delete tile.properties.neighbours;
-
-      const tileCorners = [];
-
-      tile.coordinates[0].forEach((coords, i) => {
-        if (i === tile.coordinates[0].length - 1) {
-          return;
-        }
-
-        const cornerId = coords.join(',');
-        const corner = cornersById[cornerId] || {
-          id: cornerId,
-          coords: coords,
-          height: 0,
-        };
-
-        corner.touches = corner.touches || [];
-        corner.touches.push(tile);
-
-        cornersById[corner.id] = corner;
-
-        tileCorners.push(corner);
-        tile.properties.corners.push(corner);
-      });
-
-      tileCorners.forEach((corner, i) => {
-        corner.adjacent = corner.adjacent || [];
-
-        if (i > 0) {
-          corner.adjacent.push(tileCorners[i - 1]);
-        }
-
-        if (i < tileCorners.length - 1) {
-          corner.adjacent.push(tileCorners[i + 1]);
-        }
-
-      });
-    });
-
-    const corners = [];
-    Object.keys(cornersById).forEach((id) => {
-      const corner = cornersById[id];
-      corners.push(corner);
-    });
-
-    this.corners = corners;
   }
 
   addMountains(n, height, radiusModifier = 1) {
@@ -298,13 +219,13 @@ class Mesh {
     });
   }
 
-  findRivers(threshold) {
-    this.setDownhills();
-    this.fixDrainage();
-    this.setFluxes();
+  // findRivers(threshold) {
+  //   this.setDownhills();
+  //   this.fixDrainage();
+  //   this.setFluxes();
 
-    this.rivers = riverFinder(this.tiles, this.seaLevel, threshold);
-  }
+  //   this.rivers = riverFinder(this.tiles, this.seaLevel, threshold);
+  // }
 }
 
 export default Mesh;

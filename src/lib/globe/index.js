@@ -3,10 +3,8 @@ import {
   geoPath,
   timer,
   now,
-  scaleLinear,
   select,
   drag,
-  quantile,
   mouse,
 } from 'd3';
 
@@ -14,8 +12,6 @@ import Mesh from './mesh';
 import { eulerAngles } from './euler-angles';
 
 const colors = {
-  space: '#ffffff',
-
   deepWater: '#302e66',
   midWater: '#4f4f7f',
   shallowWater: '#8b8aad',
@@ -32,7 +28,7 @@ const colors = {
 const AUTOROTATE_SPEED = 0.007; // degrees per ms
 
 const meshSteps = [
-  ['getPoints'],
+  ['setup'],
   ['addMountains', 10, 0.1, 20],
   ['addMountains', 10, -0.1, 20],
   ['addMountains', 3, 1, 0.7],
@@ -53,16 +49,12 @@ const meshSteps = [
   ['erode'],
   ['erode'],
   ['erode'],
-
-  // ['findRivers'],
 ];
 
 class Globe {
   constructor() {
     window.globe = this;
-
-    this.mesh = new Mesh();
-    this.lastMesh = this.mesh;
+    this.lastMesh = {};
 
     this.projection = geoOrthographic().precision(0.1);
 
@@ -90,9 +82,9 @@ class Globe {
     select(this.canvas).call(d);
   }
 
-  scale() {
-    this.width = parseFloat(this.canvas.getAttribute('width'));
-    this.height = parseFloat(this.canvas.getAttribute('height'));
+  scale(width, height) {
+    this.width = width || parseFloat(this.canvas.getAttribute('width'));
+    this.height = height || parseFloat(this.canvas.getAttribute('height'));
 
     this.projection
       .scale(0.8 * Math.min(this.width, this.height) / 2)
@@ -108,6 +100,7 @@ class Globe {
   }
 
   reset() {
+    this.lastMesh = {};
     this.clearTimeouts();
   }
 
@@ -165,74 +158,31 @@ class Globe {
   }
 
   render() {
-    this.ctx.fillStyle = colors.space;
+    this.ctx.fillStyle = '#222';
     this.ctx.fillRect(0, 0, this.width, this.height);
 
-    this.fill({type: 'Sphere'}, colors.midWater);
-
     if (!this.lastMesh.tiles) {
+      this.fill({type: 'Sphere'}, colors.midWater);
       return;
     };
 
-    const heights = this.lastMesh.heights();
-    heights.sort((a, b) => a - b);
-
-    const seaHeights = [];
-    const landHeights = [];
-
-    heights.forEach((height) => {
-      if (height > this.lastMesh.seaLevel) {
-        landHeights.push(height);
-      } else {
-        seaHeights.push(height);
-      }
-    });
-
-    const seaScale = scaleLinear()
-      .domain([
-        seaHeights[0],
-        quantile(seaHeights, 0.4),
-        seaHeights[seaHeights.length - 1],
-      ])
-      .range([
-        colors.deepWater,
-        colors.midWater,
-        colors.shallowWater,
-      ]);
-
-    const landScale = scaleLinear()
-      .domain([
-        landHeights[0],
-        quantile(landHeights, 0.9),
-        quantile(landHeights, 0.96),
-        landHeights[landHeights.length - 1],
-      ])
-      .range([
-        colors.beach,
-        colors.forest,
-        colors.peakStart,
-        colors.peak,
-      ]);
-
     this.lastMesh.tiles.forEach((tile) => {
-      const h = tile.properties.height;
-      const color = h > this.lastMesh.seaLevel ? landScale(h) : seaScale(h);
-      this.fillAndStroke(tile, color);
+      this.fillAndStroke(tile, tile.properties.color);
     });
 
-    if (this.lastMesh.rivers) {
-      this.ctx.globalAlpha = 0.6;
-      this.lastMesh.rivers.forEach((river) => {
-        this.stroke({
-            type: 'LineString',
-            coordinates: river,
-          },
-          colors.shallowWater,
-          2,
-        );
-      });
-      this.ctx.globalAlpha = 1;
-    }
+    // if (this.lastMesh.rivers) {
+    //   this.ctx.globalAlpha = 0.6;
+    //   this.lastMesh.rivers.forEach((river) => {
+    //     this.stroke({
+    //         type: 'LineString',
+    //         coordinates: river,
+    //       },
+    //       colors.shallowWater,
+    //       2,
+    //     );
+    //   });
+    //   this.ctx.globalAlpha = 1;
+    // }
   }
 
   fillAndStroke(object, color) {

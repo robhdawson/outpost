@@ -51,6 +51,10 @@ class GlobeView extends Component {
     this.setState({
       displayHeight,
     });
+
+    if (this.globe) {
+      this.globe.scale(displayHeight, displayHeight);
+    }
   }
 
   generate() {
