@@ -77,5 +77,4 @@ const getSeed = () => {
   }
 };
 
-
 export default getSeed;

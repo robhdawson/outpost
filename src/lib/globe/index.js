@@ -31,8 +31,6 @@ class Globe {
   generate() {
     const seed = getSeed();
 
-    console.log('seed', seed);
-
     this.mesh = new Mesh({
       palette: seed.palette,
       seaLevelQuantile: seed.seaLevelQuantile,
@@ -67,6 +65,8 @@ class Globe {
       quality: 8,
       width: imageD,
       height: imageD,
+      background: '#fff',
+      transparent: 'rgba(0,0,0,0)',
     });
 
     for (let i = 0; i < GIF_FRAMES; i++) {
@@ -200,8 +200,7 @@ class Globe {
       return;
     }
 
-    this.ctx.fillStyle = '#222';
-    this.ctx.fillRect(0, 0, this.width, this.height);
+    this.ctx.clearRect(0, 0, this.width, this.height);
 
     if (!this.lastMesh.tiles) {
       this.fill({type: 'Sphere'}, '#000');

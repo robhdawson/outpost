@@ -1,6 +1,9 @@
 import { geoVoronoi } from 'd3-geo-voronoi';
 import {
   scaleLinear,
+  // scaleQuantize,
+  // quantize,
+  // interpolateRgb,
   max,
   min,
   mean,
@@ -273,11 +276,22 @@ function setColors(mesh) {
       mesh.palette.peak,
     ]);
 
+  const byColor = {};
+
   mesh.tiles.forEach((tile) => {
     const h = tile.properties.height;
     const color = h > mesh.seaLevel ? landScale(h) : seaScale(h);
     tile.properties.color = color;
+
+    byColor[color] = byColor[color] || {
+      type: 'GeometryCollection',
+      geometries: [],
+    };
+
+    byColor[color].geometries.push(tile);
   });
+
+  mesh.tilesByColor = byColor;
 }
 
 function neighbors(tile, mesh) {
