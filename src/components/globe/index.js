@@ -70,7 +70,6 @@ class GlobeView extends Component {
       this.globe.makeGif((img) => {
         const a = document.createElement('a');
         a.setAttribute('href', img);
-        a.setAttribute('target', '_blank');
         a.setAttribute('download', 'outpost.gif');
         a.style.display = 'none';
         document.body.appendChild(a);
