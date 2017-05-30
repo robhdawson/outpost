@@ -35,7 +35,7 @@ self.onmessage = (e) => {
 };
 
 const steps = {
-  setup: function(numberOfPoints = 2500) {
+  setup: function(numberOfPoints = 2800) {
     const points = [];
 
     // doing the fibonacci spiral sphere thing
@@ -280,7 +280,7 @@ function setColors(mesh) {
 
   mesh.tiles.forEach((tile) => {
     const h = tile.properties.height;
-    const color = h > mesh.seaLevel ? landScale(h) : seaScale(h);
+    const color = roundColor(h > mesh.seaLevel ? landScale(h) : seaScale(h));
     tile.properties.color = color;
 
     byColor[color] = byColor[color] || {
@@ -292,6 +292,15 @@ function setColors(mesh) {
   });
 
   mesh.tilesByColor = byColor;
+}
+
+function roundColor(rgb) {
+  const newRgb = rgb.slice(4, rgb.length - 1).split(',').map((n) => {
+    let d = parseInt(n);
+    d = Math.floor(d / 5) * 5;
+    return d;
+  });
+  return `rgb(${newRgb.join(', ')})`;
 }
 
 function neighbors(tile, mesh) {

@@ -16,14 +16,14 @@ import getSeed from './seed';
 
 const AUTOROTATE_SPEED = 0.03; // degrees per ms
 
-const GIF_FRAMES = 80;
+const GIF_FRAMES = 60;
 
 class Globe {
   constructor() {
     window.globe = this;
     this.lastMesh = {};
 
-    this.projection = geoOrthographic().precision(0.1);
+    this.projection = geoOrthographic().precision(0.01).clipAngle(90);
 
     this.timeouts = [];
   }
@@ -55,18 +55,16 @@ class Globe {
 
     this.timer.stop();
 
-    const imageD = 300;
+    const imageD = 350;
 
     const w = this.canvas.getAttribute('width');
     const h = this.canvas.getAttribute('height');
 
     const gif = new GIF({
       workers: 40,
-      quality: 8,
+      quality: 10,
       width: imageD,
       height: imageD,
-      background: '#fff',
-      transparent: 'rgba(0,0,0,0)',
     });
 
     for (let i = 0; i < GIF_FRAMES; i++) {
@@ -86,7 +84,7 @@ class Globe {
         imageD, imageD
       );
 
-      gif.addFrame(fakeCanvas, { delay: (3500 / GIF_FRAMES) });
+      gif.addFrame(fakeCanvas, { delay: (4500 / GIF_FRAMES) });
     }
 
     gif.on('finished', (blob) => {
@@ -125,7 +123,7 @@ class Globe {
     this.height = height || parseFloat(this.canvas.getAttribute('height'));
 
     this.projection
-      .scale(0.8 * Math.min(this.width, this.height) / 2)
+      .scale(0.7 * Math.min(this.width, this.height) / 2)
       .translate([this.width / 2, this.height / 2]);
   }
 
@@ -200,15 +198,17 @@ class Globe {
       return;
     }
 
-    this.ctx.clearRect(0, 0, this.width, this.height);
+    this.ctx.fillStyle = '#333';
+    this.ctx.fillRect(0, 0, this.width, this.height);
 
     if (!this.lastMesh.tiles) {
       this.fill({type: 'Sphere'}, '#000');
       return;
     };
 
-    this.lastMesh.tiles.forEach((tile) => {
-      this.fillAndStroke(tile, tile.properties.color);
+    Object.keys(this.lastMesh.tilesByColor).forEach((color) => {
+      const tiles = this.lastMesh.tilesByColor[color];
+      this.fillAndStroke(tiles, color);
     });
   }
 
