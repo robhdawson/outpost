@@ -50,6 +50,10 @@ class GlobeView extends Component {
     this.setState({
       displayHeight,
     });
+
+    if (this.globe) {
+      this.globe.scale(displayHeight, displayHeight);
+    }
   }
 
   generate() {
@@ -66,7 +70,7 @@ class GlobeView extends Component {
       this.globe.makeGif((img) => {
         const a = document.createElement('a');
         a.setAttribute('href', img);
-
+        a.setAttribute('target', '_blank');
         a.setAttribute('download', 'outpost.gif');
         a.style.display = 'none';
         document.body.appendChild(a);
@@ -98,8 +102,8 @@ class GlobeView extends Component {
           </div>
 
           <canvas
-            width="500"
-            height="500"
+            width={this.state.displayHeight}
+            height={this.state.displayHeight}
             ref={canvas => this.canvas = canvas}
           >
           </canvas>

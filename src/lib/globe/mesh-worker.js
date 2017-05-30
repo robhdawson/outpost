@@ -32,7 +32,7 @@ self.onmessage = (e) => {
 };
 
 const steps = {
-  setup: function(numberOfPoints = 5400) {
+  setup: function(numberOfPoints = 2500) {
     const points = [];
 
     // doing the fibonacci spiral sphere thing
@@ -262,8 +262,8 @@ function setColors(mesh) {
   const landScale = scaleLinear()
     .domain([
       landHeights[0],
+      quantile(landHeights, 0.4),
       quantile(landHeights, 0.9),
-      quantile(landHeights, 0.96),
       landHeights[landHeights.length - 1],
     ])
     .range([

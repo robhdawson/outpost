@@ -12,35 +12,11 @@ import GIF from 'gif.js';
 
 import Mesh from './mesh';
 import { eulerAngles } from './euler-angles';
-import palettes from './palettes';
+import getSeed from './seed';
 
-const AUTOROTATE_SPEED = 0.007; // degrees per ms
+const AUTOROTATE_SPEED = 0.03; // degrees per ms
 
 const GIF_FRAMES = 80;
-
-const meshSteps = [
-  ['setup'],
-  ['addMountains', 10, 0.1, 20],
-  ['addMountains', 10, -0.1, 20],
-  ['addMountains', 3, 1, 0.7],
-  ['addMountains', 6, -0.7, 5],
-  ['addMountains', 14, -0.6],
-  ['addMountains', 100, 0.4, 0.8],
-  ['addMountains', 50, -0.5, 2],
-  ['relaxHeights'],
-  ['addMountains', 10, 0.7],
-  ['addMountains', 12, 0.6],
-  ['addMountains', 40, 0.5],
-  ['relaxHeights', 1],
-  ['addMountains', 6, 1, 0.5],
-  ['addMountains', 10, 0.6, 0.4],
-
-  // ['erode'],
-  // ['erode'],
-  // ['erode'],
-  // ['erode'],
-  // ['erode'],
-];
 
 class Globe {
   constructor() {
@@ -53,11 +29,14 @@ class Globe {
   }
 
   generate() {
+    const seed = getSeed();
+
     this.mesh = new Mesh({
-      palette: palettes.earth,
-      seaLevelQuantile: 0.5,
+      palette: seed.palette,
+      seaLevelQuantile: seed.seaLevelQuantile,
     });
-    this.mesh.generate(meshSteps, this.onMeshUpdate.bind(this));
+
+    this.mesh.generate(seed.steps, this.onMeshUpdate.bind(this));
   }
 
   onMeshUpdate(mesh) {
@@ -76,11 +55,16 @@ class Globe {
 
     this.timer.stop();
 
+    const imageD = 300;
+
+    const w = this.canvas.getAttribute('width');
+    const h = this.canvas.getAttribute('height');
+
     const gif = new GIF({
-      workers: 4,
+      workers: 40,
       quality: 8,
-      width: this.canvas.getAttribute('width'),
-      height: this.canvas.getAttribute('height'),
+      width: imageD,
+      height: imageD,
     });
 
     for (let i = 0; i < GIF_FRAMES; i++) {
@@ -89,7 +73,18 @@ class Globe {
       this.projection.rotate(currentRotation);
       this.render();
 
-      gif.addFrame(this.ctx, { copy: true, delay: (3500 / GIF_FRAMES) });
+      const fakeCanvas = document.createElement('canvas');
+      fakeCanvas.setAttribute('width', imageD);
+      fakeCanvas.setAttribute('height', imageD);
+      fakeCanvas.getContext('2d').drawImage(
+        this.canvas,
+        0, 0,
+        w, h,
+        0, 0,
+        imageD, imageD
+      );
+
+      gif.addFrame(fakeCanvas, { delay: (3500 / GIF_FRAMES) });
     }
 
     gif.on('finished', (blob) => {
@@ -207,7 +202,7 @@ class Globe {
     this.ctx.fillRect(0, 0, this.width, this.height);
 
     if (!this.lastMesh.tiles) {
-      this.fill({type: 'Sphere'}, '#5b1b09');
+      this.fill({type: 'Sphere'}, '#000');
       return;
     };
 
