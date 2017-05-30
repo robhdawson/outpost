@@ -62,6 +62,9 @@ const getSteps = () => {
   steps.push(littles());
   steps.push(peaks());
   steps.push(littles());
+  steps.push(peaks(posNeg()));
+  steps.push(['smoothCoast', 3]);
+  steps.push(['normalizeHeights']);
   return steps;
 }
 

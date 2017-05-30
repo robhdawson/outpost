@@ -1,9 +1,6 @@
 import { geoVoronoi } from 'd3-geo-voronoi';
 import {
   scaleLinear,
-  // scaleQuantize,
-  // quantize,
-  // interpolateRgb,
   max,
   min,
   mean,
@@ -71,11 +68,6 @@ const steps = {
 
       tile.properties.height = 0;
       tile.properties.center = tile.properties.site;
-      // tile.properties.neighbors = [];
-
-      // for (let n = 0; n < tile.properties.neighbours.length; n++) {
-      //   tile.properties.neighbors.push(shallowTile(this.tiles[tile.properties.neighbours[n]]));
-      // }
 
       tile.properties.neighborIndexes = tile.properties.neighbours;
       tile.properties.id = tile.properties.site.index;
@@ -183,6 +175,37 @@ const steps = {
     afterHeightChange(this);
   },
 
+  smoothCoast: function(iterations = 1) {
+    for (let i = 0; i < iterations; i++) {
+      this.tiles.forEach((tile) => {
+        const neighborHeights = [];
+        const ns = neighbors(tile, this);
+        for (let n = 0; n < ns.length; n++) {
+          neighborHeights.push(ns[n].properties.height);
+        }
+
+        if (tile.properties.height > this.seaLevel) {
+          // if it's above sea level, but more than most of the neighbors are below,
+          // move it down.
+          const downNeighbs = neighborHeights.filter(h => h <= this.seaLevel);
+
+          if (downNeighbs.length > ns.length / 1.5) {
+            tile.properties.height = mean(downNeighbs);
+          }
+        } else if  (tile.properties.height <= this.seaLevel) {
+          // vice-versa
+          const upNeighbs = neighborHeights.filter(h => h > this.seaLevel);
+
+          if (upNeighbs.length >= ns.length / 1.5) {
+            tile.properties.height = mean(upNeighbs);
+          }
+        }
+      });
+
+      afterHeightChange(this);
+    }
+  },
+
   // erode(iterations = 1) {
   //   for (let i = 0; i < iterations; i++) {
   //     this.setDownhills();
@@ -212,6 +235,7 @@ const steps = {
 
   //   afterHeightChange(this);
   // }
+  //
 }
 
 function afterHeightChange(mesh) {

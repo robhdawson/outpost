@@ -139,7 +139,7 @@ class Mesh {
       });
     }
 
-    this.smoothCoast();
+    // this.smoothCoast();
   }
 
   smoothCoast() {
