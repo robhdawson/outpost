@@ -22,9 +22,11 @@ class Header extends Component {
             <Link to="/">Outpost.</Link>
           </h1>
 
-          <div className="header-image">
-            <img alt="A flag." src={flag} />
-          </div>
+          {
+          // <div className="header-image">
+          //   <img alt="A flag." src={flag} />
+          // </div>
+          }
         </div>
       </div>
     );

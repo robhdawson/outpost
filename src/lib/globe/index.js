@@ -16,7 +16,7 @@ import palettes from './palettes';
 
 const AUTOROTATE_SPEED = 0.007; // degrees per ms
 
-const GIF_FRAMES = 100;
+const GIF_FRAMES = 80;
 
 const meshSteps = [
   ['setup'],
@@ -77,8 +77,8 @@ class Globe {
     this.timer.stop();
 
     const gif = new GIF({
-      workers: 3,
-      quality: 10,
+      workers: 4,
+      quality: 8,
       width: this.canvas.getAttribute('width'),
       height: this.canvas.getAttribute('height'),
     });

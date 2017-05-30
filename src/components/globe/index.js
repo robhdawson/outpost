@@ -12,6 +12,7 @@ class GlobeView extends Component {
 
     this.state = {
       displayHeight: 0,
+      loading: false,
     };
 
     window.c = this;
@@ -60,45 +61,62 @@ class GlobeView extends Component {
     this.setState({
       loading: true,
     });
-    this.globe.makeGif((img) => {
-      const a = document.createElement('a');
-      a.setAttribute('href', img);
 
-      a.setAttribute('download', 'outpost.gif');
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      this.setState({
-        loading: false,
+    window.setTimeout(() => {
+      this.globe.makeGif((img) => {
+        const a = document.createElement('a');
+        a.setAttribute('href', img);
+
+        a.setAttribute('download', 'outpost.gif');
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        this.setState({
+          loading: false,
+        });
       });
-    });
+    }, 10);
   }
 
   render() {
+    const classNames = ['display'];
+
+    if (this.state.loading) {
+      classNames.push('loading');
+    }
+
     return (
       <div className="creator">
         <div
-          className="display"
+          className={classNames.join(' ')}
           style={ { height: this.state.displayHeight } }
           ref={display => this.display = display}
         >
+          <div className="loader">
+            Loading...
+          </div>
+
           <canvas
-            width="540"
-            height="540"
+            width="500"
+            height="500"
             ref={canvas => this.canvas = canvas}
           >
           </canvas>
         </div>
 
         <div className="toolbar">
-          <ChunkyButton onClick={this.generate}>
+          <ChunkyButton onClick={this.generate} disabled={this.state.loading}>
             New
           </ChunkyButton>
 
-          <ChunkyButton onClick={this.makeGif} disabled={!(this.globe && this.globe.done)}>
+          <ChunkyButton onClick={this.makeGif} disabled={this.state.loading || !(this.globe && this.globe.done)}>
             Download as GIF
           </ChunkyButton>
+        </div>
+
+        <div className="hint">
+          (you can drag the globe around)
         </div>
       </div>
     );
