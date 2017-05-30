@@ -31,6 +31,8 @@ class Globe {
   generate() {
     const seed = getSeed();
 
+    console.log('seed', seed);
+
     this.mesh = new Mesh({
       palette: seed.palette,
       seaLevelQuantile: seed.seaLevelQuantile,

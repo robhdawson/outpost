@@ -15,6 +15,12 @@ const waters = {
         shallowWater: '#8b8aad',
     },
 
+    grayBlue: {
+        deepWater: '#303030',
+        midWater: '#4d5b66',
+        shallowWater: '#6e8aa0',
+    },
+
     red: {
         deepWater: '#5b0f0f',
         midWater: '#8e3b52',
@@ -34,6 +40,13 @@ const lands = {
         forest: '#cec8ab',
         peakStart: '#ccc8b9',
         peak: '#fffff8',
+    },
+
+    orangey: {
+        beach: '#7a5403',
+        forest: '#b79550',
+        peakStart: '#dddbaf',
+        peak: '#f2f0d7',
     },
 
     greens: {
