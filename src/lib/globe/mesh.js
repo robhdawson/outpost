@@ -39,6 +39,7 @@ class Mesh {
         });
       } else {
         this.m.done = true;
+        this.worker.terminate();
       }
     };
 
@@ -48,6 +49,12 @@ class Mesh {
       index: 0,
       mesh: this.m,
     });
+  }
+
+  cleanup() {
+    if (this.worker) {
+      this.worker.terminate();
+    }
   }
 
   heights() {

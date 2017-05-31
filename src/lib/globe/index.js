@@ -40,6 +40,11 @@ class Globe {
 
     const seed = getSeed();
 
+    if (this.mesh) {
+      this.mesh.cleanup();
+      delete this.mesh;
+    }
+
     this.mesh = new Mesh({
       palette: seed.palette,
       seaLevelQuantile: seed.seaLevelQuantile,
@@ -138,6 +143,10 @@ class Globe {
     if (this.timer) {
       this.timer.stop();
       delete this.timer;
+    }
+
+    if (this.mesh) {
+      this.mesh.cleanup();
     }
   }
 
