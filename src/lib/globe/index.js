@@ -18,17 +18,26 @@ const AUTOROTATE_SPEED = 0.03; // degrees per ms
 
 const GIF_FRAMES = 60;
 
+const sample = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
 class Globe {
   constructor() {
     window.globe = this;
     this.lastMesh = {};
 
-    this.projection = geoOrthographic().precision(0.01).clipAngle(90);
-
-    this.timeouts = [];
+    this.projection = geoOrthographic()
+      .precision(0.01)
+      .clipAngle(90)
+      .rotate([0, 0, 0]);
   }
 
   generate() {
+    this.rotateDirection = ([
+      sample([-1, 1]),
+      sample([-1, 0, 1]),
+      sample([-1, 0, 1]),
+    ]);
+
     const seed = getSeed();
 
     this.mesh = new Mesh({
@@ -68,9 +77,7 @@ class Globe {
     });
 
     for (let i = 0; i < GIF_FRAMES; i++) {
-      const currentRotation = this.projection.rotate();
-      currentRotation[0] += (360 / GIF_FRAMES);
-      this.projection.rotate(currentRotation);
+      this.rotate(360 / GIF_FRAMES);
       this.render();
 
       const fakeCanvas = document.createElement('canvas');
@@ -132,17 +139,10 @@ class Globe {
       this.timer.stop();
       delete this.timer;
     }
-    this.clearTimeouts();
   }
 
   reset() {
     this.lastMesh = {};
-    this.clearTimeouts();
-  }
-
-  clearTimeouts() {
-    this.timeouts.forEach(t => window.clearTimeout(t));
-    this.timeouts = [];
   }
 
   dragStart() {
@@ -150,11 +150,13 @@ class Globe {
     this.isRotating = false;
 
     this.lastDragStart = this.projection.invert(mouse(this.canvas));
+    this.lastDragStartRotation = this.projection.rotate();
   }
 
   dragging() {
     const position = this.projection.invert(mouse(this.canvas));
     const rotation = this.projection.rotate();
+    this.lastDragRotation = rotation;
 
     const newRotation = eulerAngles(
       this.lastDragStart,
@@ -169,28 +171,35 @@ class Globe {
 
   dragEnd() {
     this.lastDragStart = null;
+    this.lastDragRotation = null;
+    this.lastDragStartRotation = null;
     this.dragTimeout = window.setTimeout(() => {
       this.isRotating = true;
-    }, 1000);
+    }, 0);
   }
 
   tick(elapsed) {
     const thisTime = now();
 
-
-    if (this.isRotating) {
+    if (this.isRotating && this.rotateDirection) {
       const diff = thisTime - this.lastTime;
 
       if (diff < elapsed) {
-        const currentRotation = this.projection.rotate();
-        currentRotation[0] += diff * AUTOROTATE_SPEED;
-        this.projection.rotate(currentRotation);
+        this.rotate(diff * AUTOROTATE_SPEED);
       }
     }
 
     this.lastTime = thisTime;
 
     this.render();
+  }
+
+  rotate(amt) {
+    const rotation = this.projection.rotate();
+    rotation[0] += amt * this.rotateDirection[0];
+    rotation[1] += amt * this.rotateDirection[1];
+    rotation[2] += amt * this.rotateDirection[2];
+    this.projection.rotate(rotation);
   }
 
   render() {

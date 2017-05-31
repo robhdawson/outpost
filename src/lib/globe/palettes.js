@@ -35,7 +35,7 @@ const waters = {
 };
 
 const lands = {
-    brown: {
+    tan: {
         beach: '#a39984',
         forest: '#cec8ab',
         peakStart: '#ccc8b9',
@@ -43,7 +43,7 @@ const lands = {
     },
 
     orangey: {
-        beach: '#7a5403',
+        beach: '#896929',
         forest: '#b79550',
         peakStart: '#dddbaf',
         peak: '#f2f0d7',
