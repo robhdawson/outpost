@@ -34,8 +34,8 @@ class Globe {
   generate() {
     this.rotateDirection = ([
       sample([-1, 1]),
-      sample([-1, 0, 1]),
-      sample([-1, 0, 1]),
+      sample([-1, 0, 0, 1]),
+      sample([-1, 0, 0, 1]),
     ]);
 
     const seed = getSeed();
@@ -207,7 +207,7 @@ class Globe {
       return;
     }
 
-    this.ctx.fillStyle = '#333';
+    this.ctx.fillStyle = '#111';
     this.ctx.fillRect(0, 0, this.width, this.height);
 
     if (!this.lastMesh.tiles) {
