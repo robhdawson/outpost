@@ -48,6 +48,7 @@ class Globe {
     this.mesh = new Mesh({
       palette: seed.palette,
       seaLevelQuantile: seed.seaLevelQuantile,
+      name: seed.name,
     });
 
     this.mesh.generate(seed.steps, this.onMeshUpdate.bind(this));
@@ -136,7 +137,7 @@ class Globe {
 
     this.projection
       .scale(0.7 * Math.min(this.width, this.height) / 2)
-      .translate([this.width / 2, this.height / 2]);
+      .translate([this.width / 2, (this.height / 2) + (this.height * 0.08)]);
   }
 
   detach() {
@@ -219,8 +220,19 @@ class Globe {
     this.ctx.fillStyle = '#111';
     this.ctx.fillRect(0, 0, this.width, this.height);
 
+    if (this.lastMesh.name) {
+      this.ctx.strokeStyle = '#efefef';
+      this.ctx.fillStyle = '#efefef';
+
+      this.ctx.font = '24px monospace';
+      this.ctx.fillText(this.lastMesh.name.planet, 14, 30);
+
+      this.ctx.font = '12px monospace';
+      this.ctx.fillText(this.lastMesh.name.sector + ',', 14, 48);
+      this.ctx.fillText(this.lastMesh.name.system, 14, 64);
+    }
+
     if (!this.lastMesh.tiles) {
-      this.fill({type: 'Sphere'}, '#000');
       return;
     };
 
@@ -237,21 +249,6 @@ class Globe {
     this.ctx.strokeStyle = color;
     this.ctx.lineWidth = 1;
     this.ctx.fill();
-    this.ctx.stroke();
-  }
-
-  fill(object, color) {
-    this.ctx.beginPath();
-    this.path(object);
-    this.ctx.fillStyle = color;
-    this.ctx.fill();
-  }
-
-  stroke(object, color, lineWidth = 1) {
-    this.ctx.beginPath();
-    this.path(object);
-    this.ctx.strokeStyle = color;
-    this.ctx.lineWidth = lineWidth;
     this.ctx.stroke();
   }
 
