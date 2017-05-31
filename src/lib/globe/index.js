@@ -16,7 +16,7 @@ import getSeed from './seed';
 
 const AUTOROTATE_SPEED = 0.03; // degrees per ms
 
-const GIF_FRAMES = 60;
+const GIF_FRAMES = 54;
 
 const sample = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
@@ -70,7 +70,7 @@ class Globe {
 
     this.timer.stop();
 
-    const imageD = 350;
+    const imageD = 400;
 
     const w = this.canvas.getAttribute('width');
     const h = this.canvas.getAttribute('height');
@@ -97,7 +97,7 @@ class Globe {
         imageD, imageD
       );
 
-      gif.addFrame(fakeCanvas, { delay: (4500 / GIF_FRAMES) });
+      gif.addFrame(fakeCanvas, { delay: (4000 / GIF_FRAMES) });
     }
 
     gif.on('finished', (blob) => {
@@ -227,9 +227,9 @@ class Globe {
       this.ctx.font = '24px monospace';
       this.ctx.fillText(this.lastMesh.name.planet, 14, 30);
 
-      this.ctx.font = '12px monospace';
-      this.ctx.fillText(this.lastMesh.name.sector + ',', 14, 48);
-      this.ctx.fillText(this.lastMesh.name.system, 14, 64);
+      this.ctx.font = '15px monospace';
+      this.ctx.fillText(this.lastMesh.name.sector + ',', 14, 55);
+      this.ctx.fillText(this.lastMesh.name.system, 14, 74);
     }
 
     if (!this.lastMesh.tiles) {
