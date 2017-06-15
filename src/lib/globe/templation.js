@@ -2,7 +2,7 @@ const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 const fill = (template, fillers) => {
     var done = true;
-    var parts = template.split(' ');
+    var parts = template.split(/([ $][^ $]+)/);
     var newParts = [];
     parts.forEach(function(part) {
         if (part[0] === '$') {
@@ -23,7 +23,7 @@ const fill = (template, fillers) => {
             newParts.push(part);
         }
     });
-    var reAssembled = newParts.join(' ');
+    var reAssembled = newParts.join('');
     if (done) {
         return clean(reAssembled);
     } else {

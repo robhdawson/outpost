@@ -1,25 +1,14 @@
 import randFromTemplate from './templation';
-
-import { planet, sector, system } from './name-templates';
-
-const planetName = () => {
-  return randFromTemplate(planet);
-}
-
-const sectorName = () => {
-  return randFromTemplate(sector);
-}
-
-const systemName = () => {
-  return randFromTemplate(system) + ' system';
-}
+import languages from './languages';
 
 const namer = () => {
+  const lang = languages[Math.floor(Math.random() * languages.length)];
+
   return {
-    planet: planetName(),
-    sector: sectorName(),
-    system: systemName(),
-  }
+    planet: lang.fix(randFromTemplate(lang)),
+    sector: lang.fix(randFromTemplate(lang) + ' sector'),
+    system: lang.fix(randFromTemplate(lang) + ' system'),
+  };
 }
 
 export default namer;
